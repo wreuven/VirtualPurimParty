@@ -468,7 +468,7 @@ body {
 
   <!-- Audio controls — lower left -->
   <div id="audioControls">
-    <button class="audio-btn muted" id="musicToggle" onclick="toggleBgMusic()" title="מוזיקת רקע">
+    <button class="audio-btn muted" id="bgMusicToggle" onclick="toggleBgMusic()" title="מוזיקת רקע">
       <span class="btn-icon">🎵</span><span class="btn-x">✕</span>
     </button>
     <button class="audio-btn" id="micButton" onclick="toggleMic()" title="מיקרופון">
@@ -730,11 +730,11 @@ bgMusic.volume = 0.15;
 function startBackgroundMusic() {
   // Music starts muted by default
   bgMusic.pause();
-  // musicToggle already has class="muted" in HTML
+  // bgMusicToggle already has class="muted" in HTML
 }
 
 function toggleBgMusic() {
-  const btn = document.getElementById('musicToggle');
+  const btn = document.getElementById('bgMusicToggle');
   if (bgMusic.paused) {
     btn.classList.add('active');
     btn.classList.remove('muted');
