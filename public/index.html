@@ -736,11 +736,9 @@ function startBackgroundMusic() {
 function toggleBgMusic() {
   const btn = document.getElementById('musicToggle');
   if (bgMusic.paused) {
-    bgMusic.play().then(() => {
-      btn.classList.add('active');
-      btn.classList.remove('muted');
-    }).catch(() => {
-      // Autoplay blocked — try again on next click
+    btn.classList.add('active');
+    btn.classList.remove('muted');
+    bgMusic.play().catch(() => {
       btn.classList.remove('active');
       btn.classList.add('muted');
     });
