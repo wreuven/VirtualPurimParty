@@ -749,14 +749,30 @@ function toggleBgMusic() {
   }
 }
 
-// ---- CANVAS CLICK TO MOVE ----
+// ---- CANVAS DRAG TO MOVE ----
 let hoveredVideoUrl = null;
+let dragging = false;
+let dragOffsetX = 0, dragOffsetY = 0;
 canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
   const scaleX = 1200 / rect.width;
   const scaleY = 700 / rect.height;
   const x = (e.clientX - rect.left) * scaleX;
   const y = (e.clientY - rect.top) * scaleY;
+
+  // Drag avatar
+  if (dragging) {
+    socket.emit('move', { x: x + dragOffsetX, y: y + dragOffsetY });
+    return;
+  }
+
+  // Hover cursor on own avatar
+  const me = players[myId];
+  if (me && Math.hypot(x - me.x, y - me.y) < 37) {
+    canvas.style.cursor = 'grab';
+  } else {
+    canvas.style.cursor = '';
+  }
 
   let foundVideo = null;
   for (const item of mediaItems) {
@@ -767,11 +783,9 @@ canvas.addEventListener('mousemove', (e) => {
   }
 
   if (foundVideo !== hoveredVideoUrl) {
-    // Mute previous
     if (hoveredVideoUrl && videoCache[hoveredVideoUrl]) {
       videoCache[hoveredVideoUrl].muted = true;
     }
-    // Unmute new
     if (foundVideo && videoCache[foundVideo]) {
       videoCache[foundVideo].muted = false;
     }
@@ -780,6 +794,7 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 canvas.addEventListener('mouseleave', () => {
+  if (dragging) { dragging = false; canvas.style.cursor = ''; }
   if (hoveredVideoUrl && videoCache[hoveredVideoUrl]) {
     videoCache[hoveredVideoUrl].muted = true;
   }
@@ -811,21 +826,31 @@ canvas.addEventListener('mousedown', (e) => {
     }
   }
 
-  // Check if clicking on any player
+  // Check if clicking on my avatar — start dragging
+  const me = players[myId];
+  if (me && Math.hypot(x - me.x, y - me.y) < 37) {
+    dragging = true;
+    dragOffsetX = me.x - x;
+    dragOffsetY = me.y - y;
+    canvas.style.cursor = 'grabbing';
+    return;
+  }
+
+  // Check if clicking on another player
   for (const [id, p] of Object.entries(players)) {
+    if (id === myId) continue;
     if (Math.hypot(x - p.x, y - p.y) < 35) {
-      if (id === myId) {
-        showSelfGallery();
-      } else {
-        showPlayerGallery(id);
-      }
+      showPlayerGallery(id);
       return;
     }
   }
+});
 
-  // Move player
-  selectedTarget = null;
-  socket.emit('move', { x, y });
+canvas.addEventListener('mouseup', () => {
+  if (dragging) {
+    dragging = false;
+    canvas.style.cursor = '';
+  }
 });
 
 // ---- PLAYER GALLERY ----
@@ -1620,6 +1645,10 @@ function drawPlayers() {
   const me = players[myId];
   const now = Date.now() / 1000;
   for (const [id, p] of Object.entries(players)) {
+    // My avatar is 33% larger
+    const r = id === myId ? 37 : 28;
+    const scale = r / 28;
+
     // Draw proximity circle for self
     if (id === myId) {
       ctx.beginPath();
@@ -1634,15 +1663,15 @@ function drawPlayers() {
     // Highlight if selected target
     if (id === selectedTarget) {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 38, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, r + 10, 0, Math.PI * 2);
       ctx.strokeStyle = '#ffd700';
       ctx.lineWidth = 3;
       ctx.stroke();
     }
 
     // Glow effect
-    const glowSize = 35 + Math.sin(now * 2 + p.x) * 3;
-    const glowGrad = ctx.createRadialGradient(p.x, p.y, 20, p.x, p.y, glowSize);
+    const glowSize = (35 + Math.sin(now * 2 + p.x) * 3) * scale;
+    const glowGrad = ctx.createRadialGradient(p.x, p.y, 20 * scale, p.x, p.y, glowSize);
     glowGrad.addColorStop(0, 'rgba(255,215,0,0.1)');
     glowGrad.addColorStop(1, 'rgba(255,215,0,0)');
     ctx.fillStyle = glowGrad;
@@ -1652,7 +1681,7 @@ function drawPlayers() {
 
     // Avatar circle
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 28, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
     ctx.fill();
     ctx.strokeStyle = id === myId ? '#ffd700' : 'rgba(255,255,255,0.5)';
@@ -1666,34 +1695,34 @@ function drawPlayers() {
       if (fImg._loaded) {
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 28, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
         ctx.clip();
-        ctx.drawImage(fImg, p.x - 28, p.y - 28, 56, 56);
+        ctx.drawImage(fImg, p.x - r, p.y - r, r * 2, r * 2);
         ctx.restore();
       }
     } else {
       const emoji = costumeEmojis[p.costume] || '🎭';
-      ctx.font = '28px serif';
+      ctx.font = `${Math.round(28 * scale)}px serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(emoji, p.x, p.y + 10);
+      ctx.fillText(emoji, p.x, p.y + 10 * scale);
     }
 
     // Hat/crown above avatar
     const hat = costumeHats[p.costume] || '✨';
-    ctx.font = '14px serif';
+    ctx.font = `${Math.round(14 * scale)}px serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(hat, p.x, p.y - 30);
+    ctx.fillText(hat, p.x, p.y - r - 2);
 
     // Mic icon if broadcasting
     if (playerMicStatus[id]) {
-      ctx.font = '22px serif';
-      ctx.fillText('🎤', p.x, p.y - 44);
+      ctx.font = `${Math.round(22 * scale)}px serif`;
+      ctx.fillText('🎤', p.x, p.y - r - 16);
     }
 
     // Name
-    ctx.font = 'bold 12px Nunito, sans-serif';
+    ctx.font = `bold ${Math.round(12 * scale)}px Nunito, sans-serif`;
     ctx.fillStyle = '#fff';
-    ctx.fillText(p.name, p.x, p.y + 48);
+    ctx.fillText(p.name, p.x, p.y + r + 20);
     ctx.textAlign = 'left';
 
     // Connection line to nearby
