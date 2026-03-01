@@ -1,0 +1,24 @@
+{
+  "name": "virtualpurimparty",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:mediasoup-client": "esbuild node_modules/mediasoup-client/lib/index.js --bundle --format=iife --global-name=mediasoupClient --outfile=public/mediasoup-client.bundle.js --platform=browser"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mediasoup": "^3.19.17",
+    "mediasoup-client": "^3.18.7",
+    "multer": "^2.1.0",
+    "sharp": "^0.32.6",
+    "smartcrop-sharp": "^2.0.8",
+    "socket.io": "^4.8.3",
+    "uuid": "^13.0.0"
+  }
+}

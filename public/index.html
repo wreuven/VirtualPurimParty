@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מסיבת פורים וירטואלית! 🎭</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #1a0533;
+  overflow: hidden;
+  height: 100vh;
+  direction: rtl;
+}
+
+/* JOIN SCREEN */
+#joinScreen {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2d1b69, #1a0533, #4a1a6b);
+}
+#joinScreen .join-box {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px;
+  text-align: center;
+  border: 2px solid rgba(255,215,0,0.3);
+  box-shadow: 0 0 60px rgba(147,51,234,0.3);
+  max-width: 420px; width: 90%;
+}
+#joinScreen h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.5em;
+  background: linear-gradient(135deg, #ffd700, #ff6b35, #ffd700);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+#joinScreen .subtitle {
+  color: #c4a0ff; font-size: 1.1em; margin-bottom: 24px;
+}
+#joinScreen input, #joinScreen select {
+  width: 100%; padding: 14px 18px; margin: 8px 0;
+  border-radius: 12px; border: 2px solid rgba(255,215,0,0.3);
+  background: rgba(255,255,255,0.1); color: #fff;
+  font-size: 1em; font-family: inherit;
+  text-align: right;
+}
+#joinScreen input::placeholder { color: rgba(255,255,255,0.5); }
+#joinScreen select option { background: #2d1b69; color: #fff; }
+#joinScreen button {
+  width: 100%; padding: 16px; margin-top: 16px;
+  border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #ffd700, #ff6b35);
+  color: #1a0533; font-size: 1.2em; font-weight: 700;
+  cursor: pointer; font-family: 'Fredoka One', cursive;
+  transition: transform 0.2s;
+}
+#joinScreen button:hover { transform: scale(1.05); }
+.crown-icon { font-size: 4em; margin-bottom: 12px; }
+
+/* PARTY ROOM */
+#partyRoom { display: none; height: 100vh; position: relative; }
+#roomCanvas {
+  width: 1200px; height: 700px;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 16px;
+  border: 3px solid rgba(255,215,0,0.4);
+  cursor: crosshair;
+  background: #1a0533;
+  box-shadow: 0 0 40px rgba(147,51,234,0.3);
+}
+
+/* TOOLBAR */
+#toolbar {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 100;
+  background: rgba(26,5,51,0.9); backdrop-filter: blur(12px);
+  padding: 10px 16px; border-radius: 16px;
+  border: 1px solid rgba(255,215,0,0.3);
+  direction: ltr;
+}
+.tool-btn {
+  padding: 10px 16px; border-radius: 12px; border: none;
+  background: rgba(255,255,255,0.1); color: #ffd700;
+  font-size: 1em; cursor: pointer; transition: all 0.2s;
+  font-family: inherit; white-space: nowrap;
+}
+.tool-btn:hover { background: rgba(255,215,0,0.2); transform: translateY(-2px); }
+
+/* MIC BUTTON */
+#micButton {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  width: 60px; height: 60px; border-radius: 50%; border: 3px solid #ffd700;
+  background: rgba(26,5,51,0.9); color: #fff; font-size: 28px;
+  cursor: pointer; z-index: 101; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; backdrop-filter: blur(12px);
+}
+#micButton:hover { transform: translateX(-50%) scale(1.1); }
+#micButton.mic-active {
+  background: rgba(220,38,38,0.9); border-color: #ff4444;
+  animation: pulse-mic 1.5s ease-in-out infinite;
+}
+#musicToggle {
+  position: fixed; bottom: 90px; left: 20px;
+  width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700;
+  background: rgba(26,5,51,0.9); color: #fff; font-size: 22px;
+  cursor: pointer; z-index: 101; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; backdrop-filter: blur(12px);
+}
+#musicToggle:hover { transform: scale(1.1); }
+#musicToggle.music-off { opacity: 0.5; border-color: rgba(255,215,0,0.4); }
+#speechMuteBtn {
+  position: fixed; bottom: 90px; right: 20px;
+  width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700;
+  background: rgba(26,5,51,0.9); color: #fff; font-size: 22px;
+  cursor: pointer; z-index: 101; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; backdrop-filter: blur(12px);
+}
+#speechMuteBtn:hover { transform: scale(1.1); }
+#speechMuteBtn.speech-muted { opacity: 0.5; border-color: rgba(255,215,0,0.4); }
+@keyframes pulse-mic {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.6); }
+  50% { box-shadow: 0 0 20px 10px rgba(220,38,38,0.3); }
+}
+
+/* CHAT BUBBLES */
+.chat-bubble {
+  position: absolute; background: rgba(255,255,255,0.95);
+  color: #1a0533; padding: 8px 14px; border-radius: 16px 16px 16px 4px;
+  max-width: 200px; font-size: 0.85em; z-index: 50;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  animation: bubblePop 0.3s ease-out;
+  pointer-events: none;
+}
+@keyframes bubblePop { from { transform: scale(0); opacity:0; } to { transform: scale(1); opacity:1; } }
+
+/* FLOATING EMOJI */
+.floating-emoji {
+  position: absolute; font-size: 2em; z-index: 60;
+  animation: emojiFloat 2s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes emojiFloat {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+}
+
+/* MEDIA ITEMS displayed in room */
+.media-item {
+  position: absolute; z-index: 20;
+  border-radius: 12px; overflow: hidden;
+  border: 3px solid #ffd700;
+  box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+  max-width: 160px; max-height: 120px;
+  cursor: pointer;
+}
+.media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+}
+.modal {
+  background: #2d1b69; border-radius: 20px; padding: 30px;
+  max-width: 500px; width: 90%; color: #fff;
+  border: 2px solid rgba(255,215,0,0.3);
+}
+.modal h2 { font-family: 'Fredoka One', cursive; color: #ffd700; margin-bottom: 16px; }
+.modal-close { float: left; background: none; border: none; color: #ffd700; font-size: 1.5em; cursor: pointer; }
+.modal input[type="file"] { width: 100%; margin: 12px 0; color: #c4a0ff; }
+.modal button {
+  padding: 10px 24px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, #ffd700, #ff6b35);
+  color: #1a0533; font-weight: 700; cursor: pointer;
+  font-family: inherit; margin-top: 8px;
+}
+
+/* EMOJI PICKER */
+#emojiPicker {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(26,5,51,0.95); backdrop-filter: blur(12px);
+  padding: 16px; border-radius: 16px;
+  border: 1px solid rgba(255,215,0,0.3);
+  display: none; z-index: 200;
+  max-width: 320px;
+}
+#emojiPicker .emoji-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
+#emojiPicker .emoji-btn {
+  font-size: 1.8em; background: none; border: none;
+  cursor: pointer; padding: 6px; border-radius: 8px;
+  transition: transform 0.15s;
+}
+#emojiPicker .emoji-btn:hover { transform: scale(1.3); background: rgba(255,255,255,0.1); }
+#emojiPicker p { color: #c4a0ff; margin-bottom: 10px; font-size: 0.9em; }
+
+/* MUSIC BAR */
+#musicBar {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(26,5,51,0.9); backdrop-filter: blur(12px);
+  padding: 8px 20px; border-radius: 12px;
+  border: 1px solid rgba(255,215,0,0.3);
+  color: #ffd700; font-size: 0.9em; z-index: 100;
+  display: none; align-items: center; gap: 10px;
+}
+#musicBar button { background: none; border: none; color: #ffd700; font-size: 1.2em; cursor: pointer; }
+
+/* CHAT INPUT */
+#chatInput {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  display: none; z-index: 150;
+}
+#chatInput input {
+  padding: 12px 20px; border-radius: 24px; border: 2px solid #ffd700;
+  background: rgba(26,5,51,0.95); color: #fff; font-size: 1em;
+  width: 350px; font-family: inherit;
+  text-align: right;
+}
+
+/* NAME LABELS */
+.player-label {
+  position: absolute; text-align: center; color: #fff;
+  font-size: 0.75em; font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  pointer-events: none; z-index: 40;
+  white-space: nowrap;
+}
+
+/* STARS */
+.star {
+  position: absolute; width: 3px; height: 3px;
+  background: #ffd700; border-radius: 50%;
+  animation: twinkle 2s infinite alternate;
+  pointer-events: none;
+}
+@keyframes twinkle { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+
+/* DECORATIONS */
+.room-decor {
+  position: absolute; font-size: 2.5em; pointer-events: none; z-index: 5;
+  animation: gentleFloat 3s ease-in-out infinite alternate;
+}
+@keyframes gentleFloat { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+
+/* NEARBY INDICATOR */
+#nearbyList {
+  position: fixed; top: 12px; right: 16px;
+  background: rgba(26,5,51,0.9); backdrop-filter: blur(12px);
+  padding: 12px 16px; border-radius: 12px;
+  border: 1px solid rgba(255,215,0,0.3);
+  color: #c4a0ff; font-size: 0.85em; z-index: 100;
+  max-width: 200px;
+}
+#nearbyList h3 { color: #ffd700; font-size: 0.9em; margin-bottom: 6px; }
+
+/* GALLERY */
+.gallery-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 600;
+}
+.gallery-modal {
+  background: #2d1b69; border-radius: 20px; padding: 30px;
+  max-width: 600px; width: 90%; color: #fff;
+  border: 2px solid rgba(255,215,0,0.3);
+  max-height: 80vh; overflow-y: auto;
+}
+.gallery-modal h2 { font-family: 'Fredoka One', cursive; color: #ffd700; margin-bottom: 16px; text-align: center; }
+.gallery-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+.gallery-item {
+  position: relative; border-radius: 12px; overflow: hidden;
+  border: 2px solid rgba(255,215,0,0.4); cursor: pointer;
+  aspect-ratio: 4/3; background: #1a0533;
+}
+.gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-item .video-icon {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 2em; pointer-events: none;
+}
+.gallery-delete-btn {
+  position: absolute; top: 4px; left: 4px;
+  background: rgba(220,20,60,0.9); border: none; border-radius: 50%;
+  width: 28px; height: 28px; font-size: 1em; cursor: pointer;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s;
+}
+.gallery-delete-btn:hover { transform: scale(1.2); }
+.gallery-empty { text-align: center; color: #c4a0ff; padding: 20px; }
+.gallery-close {
+  position: absolute; top: 10px; left: 10px;
+  background: none; border: none; color: #ffd700; font-size: 1.5em; cursor: pointer;
+}
+
+/* AVATAR PICKER */
+.avatar-picker-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px;
+}
+.avatar-picker-grid button {
+  font-size: 2em; padding: 10px; background: rgba(255,255,255,0.1);
+  border: 2px solid transparent; border-radius: 12px; cursor: pointer;
+  transition: all 0.2s;
+}
+.avatar-picker-grid button:hover { border-color: #ffd700; background: rgba(255,215,0,0.15); }
+.avatar-picker-grid button.selected { border-color: #ffd700; background: rgba(255,215,0,0.25); }
+
+/* SELFIE UI */
+.selfie-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4/3;
+  border: 3px solid rgba(255,215,0,0.4);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+.selfie-viewport video,
+.selfie-viewport img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.selfie-frame-overlay {
+  position: absolute; inset: 0;
+  border: 3px solid rgba(255,215,0,0.2);
+  border-radius: 14px;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.3);
+}
+.selfie-controls, .selfie-confirm-bar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  align-items: center;
+}
+.selfie-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  font-family: inherit;
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+.selfie-btn:hover { transform: translateY(-2px); }
+.selfie-btn-icon { font-size: 1.6em; }
+.selfie-btn-snap {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #1a0533;
+  border-color: rgba(255,215,0,0.5);
+}
+.selfie-btn-record {
+  background: linear-gradient(135deg, #e91e63, #c2185b);
+  color: #fff;
+  border-color: rgba(233,30,99,0.5);
+}
+.selfie-btn-stop {
+  background: linear-gradient(135deg, #f44336, #b71c1c);
+  color: #fff;
+  border-color: rgba(244,67,54,0.5);
+  animation: pulse-red 1s infinite;
+}
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244,67,54,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(244,67,54,0); }
+}
+.selfie-btn-confirm {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: #fff;
+  border-color: rgba(76,175,80,0.5);
+  min-width: 100px;
+}
+.selfie-btn-cancel {
+  background: linear-gradient(135deg, #78909c, #546e7a);
+  color: #fff;
+  border-color: rgba(120,144,156,0.5);
+  min-width: 100px;
+}
+.record-timer {
+  color: #ff6b35;
+  font-weight: 700;
+  font-size: 1.4em;
+  min-width: 40px;
+  text-align: center;
+  display: none;
+}
+.record-timer.active { display: inline-block; }
+.record-timer.warning { color: #e91e63; }
+#selfiePreview .selfie-viewport video {
+  border-radius: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- JOIN SCREEN -->
+<div id="joinScreen">
+  <div class="join-box">
+    <div class="crown-icon">👑</div>
+    <h1>מסיבת פורים וירטואלית!</h1>
+    <p class="subtitle">בואו לחגוג!</p>
+    <input type="text" id="nameInput" placeholder="...השם שלך" maxlength="20" autocomplete="off">
+    <select id="costumeSelect">
+      <option value="queen_esther">👸 אסתר המלכה</option>
+      <option value="king">🤴 אחשוורוש</option>
+      <option value="mordechai">🧔 מרדכי</option>
+      <option value="clown">🤡 ליצן</option>
+      <option value="superhero">🦸 גיבור על</option>
+      <option value="princess">👸 נסיכה</option>
+      <option value="pirate">🏴‍☠️ פיראט</option>
+      <option value="wizard">🧙 קוסם</option>
+      <option value="ninja">🥷 נינג'ה</option>
+      <option value="astronaut">👨‍🚀 אסטרונאוט</option>
+    </select>
+    <button onclick="joinParty()">🎉 כניסה למסיבה!</button>
+  </div>
+</div>
+
+<!-- PARTY ROOM -->
+<div id="partyRoom">
+  <canvas id="roomCanvas" width="1200" height="700"></canvas>
+
+  <!-- Nearby players list -->
+  <div id="nearbyList">
+    <h3>🎭 בקרבת מקום</h3>
+    <div id="nearbyNames">אין אף אחד בקרבת מקום</div>
+  </div>
+
+  <!-- Music bar -->
+  <div id="musicBar">
+    <span>🎶</span>
+    <span id="musicName">אין מוזיקה</span>
+    <button id="musicToggle" onclick="toggleMusic()">▶️</button>
+    <audio id="partyAudio" loop></audio>
+  </div>
+
+  <!-- Chat input -->
+  <div id="chatInput">
+    <input type="text" id="chatText" placeholder="...אמור משהו לאנשים בקרבת מקום" maxlength="200" autocomplete="off">
+  </div>
+
+  <!-- Emoji picker -->
+  <div id="emojiPicker">
+    <p>:שלח אימוג'י חיובי למישהו בקרבת מקום</p>
+    <div class="emoji-grid" id="emojiGrid"></div>
+  </div>
+
+  <!-- Toolbar -->
+  <button id="musicToggle" onclick="toggleBgMusic()">🎶</button>
+  <button id="micButton" onclick="toggleMic()">🎙️</button>
+  <button id="speechMuteBtn" onclick="toggleSpeechMute()" title="השתק/בטל השתקה דיבור">🔊</button>
+  <div id="toolbar">
+    <button class="tool-btn" onclick="toggleChat()">💬 צ'אט</button>
+    <button class="tool-btn" onclick="toggleEmojiPicker()">😊 אימוג'י</button>
+    <button class="tool-btn" onclick="showUploadModal('image')">📸 תמונה</button>
+    <button class="tool-btn" onclick="showUploadModal('video')">🎬 קליפ</button>
+    <button class="tool-btn" onclick="showUploadModal('music')">🎵 מוזיקה</button>
+    <button class="tool-btn" onclick="showUploadModal('selfie')">🤳 סלפי</button>
+  </div>
+</div>
+
+<!-- UPLOAD MODAL (hidden by default) -->
+<div id="uploadModal" class="modal-overlay" style="display:none">
+  <div class="modal" id="uploadModalInner">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2 id="modalTitle">העלאה</h2>
+    <p id="modalDesc" style="color:#c4a0ff;margin-bottom:12px"></p>
+    <input type="file" id="fileInput">
+    <div id="selfieArea" style="display:none">
+      <div class="selfie-viewport">
+        <video id="selfieVideo" autoplay playsinline muted></video>
+        <div class="selfie-frame-overlay"></div>
+      </div>
+      <div class="selfie-controls" id="selfieControls">
+        <button onclick="takeSelfie()" id="snapBtn" class="selfie-btn selfie-btn-snap" title="צלם תמונה">
+          <span class="selfie-btn-icon">📸</span>
+          <span>תמונה</span>
+        </button>
+        <button onclick="startSelfieRecording()" id="recordBtn" class="selfie-btn selfie-btn-record" title="הקלט סרטון">
+          <span class="selfie-btn-icon">🎬</span>
+          <span>סרטון</span>
+        </button>
+        <button onclick="stopSelfieRecording()" id="stopRecordBtn" class="selfie-btn selfie-btn-stop" style="display:none" title="עצור הקלטה">
+          <span class="selfie-btn-icon">⏹</span>
+          <span>עצור</span>
+        </button>
+        <span id="recordTimer" class="record-timer"></span>
+      </div>
+      <canvas id="selfieCanvas" width="400" height="300" style="display:none"></canvas>
+      <div id="selfiePreview" style="display:none">
+        <div class="selfie-viewport">
+          <div id="selfiePreviewContent"></div>
+        </div>
+        <div class="selfie-confirm-bar">
+          <button onclick="confirmSelfie()" class="selfie-btn selfie-btn-confirm">
+            <span class="selfie-btn-icon">✅</span>
+            <span>שתף</span>
+          </button>
+          <button onclick="cancelSelfiePreview()" class="selfie-btn selfie-btn-cancel">
+            <span class="selfie-btn-icon">❌</span>
+            <span>צלם שוב</span>
+          </button>
+        </div>
+      </div>
+      <div id="selfieFallback" style="display:none">
+        <p style="color:#ff6b35;margin:12px 0;text-align:center;">המצלמה לא זמינה. העלה תמונה או סרטון סלפי מהמכשיר שלך:</p>
+        <input type="file" id="selfieFileInput" accept="image/*,video/*" capture="user">
+        <button onclick="uploadSelfieFile()" class="selfie-btn selfie-btn-snap" style="margin-top:10px;width:100%;">העלה סלפי</button>
+      </div>
+    </div>
+    <br>
+    <button id="uploadBtn" onclick="doUpload()">העלה ושתף</button>
+    <p id="uploadStatus" style="color:#c4a0ff;margin-top:8px;font-size:0.9em"></p>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/mediasoup-client.bundle.js"></script>
+<script>
+const socket = io();
+const canvas = document.getElementById('roomCanvas');
+const ctx = canvas.getContext('2d');
+
+let myId = null;
+let myName = '';
+let players = {};
+let mediaItems = [];
+let chatBubbles = [];
+let floatingEmojis = [];
+let selectedTarget = null;
+let currentUploadType = '';
+let selfieStream = null;
+let isDragging = false;
+const imageCache = {};
+const videoCache = {};
+const allMyMedia = []; // persistent list of own uploads, never fades
+let myLastSelfieImage = null; // media id of my last image selfie
+let myLastSelfieVideo = null; // media id of my last video selfie
+
+// Confetti particles
+const confetti = [];
+for (let i = 0; i < 60; i++) {
+  confetti.push({
+    x: Math.random() * 1200,
+    y: Math.random() * 700,
+    size: Math.random() * 4 + 2,
+    color: ['#ffd700','#ff6b35','#e91e63','#9c27b0','#00bcd4','#4caf50'][Math.floor(Math.random()*6)],
+    speed: Math.random() * 0.5 + 0.2,
+    drift: Math.random() * 0.4 - 0.2,
+    rotation: Math.random() * 360
+  });
+}
+
+const mySelfies = []; // URLs of selfies taken by this player
+const faceImageCache = {}; // url → Image object
+
+function loadFaceImage(url) {
+  if (faceImageCache[url]) return faceImageCache[url];
+  const img = new Image();
+  img.src = url;
+  img.onload = () => { img._loaded = true; };
+  faceImageCache[url] = img;
+  return img;
+}
+
+const costumeEmojis = {
+  queen_esther: '👸', king: '🤴', mordechai: '🧔', clown: '🤡',
+  superhero: '🦸', princess: '👸', pirate: '🏴‍☠️', wizard: '🧙',
+  ninja: '🥷', astronaut: '👨‍🚀'
+};
+
+const costumeHats = {
+  queen_esther: '👑', king: '👑', mordechai: '🎩', clown: '🎀',
+  superhero: '⭐', princess: '👑', pirate: '🏴‍☠️', wizard: '🎩',
+  ninja: '💫', astronaut: '🚀'
+};
+
+const positiveEmojis = ['😊','🎉','❤️','⭐','👏','🥳','💃','🕺','✨','🌟','💖','😄','🤗','👍','🎊','🎭','👑','🍷','📜','🔔','🎶','🌈'];
+
+// Purim decorations positions - expanded
+const decorations = [
+  {emoji:'🎭', x:80, y:60}, {emoji:'📜', x:1100, y:80}, {emoji:'👑', x:600, y:40},
+  {emoji:'🍷', x:150, y:620}, {emoji:'🔔', x:1050, y:600}, {emoji:'🎊', x:300, y:50},
+  {emoji:'🎉', x:900, y:50}, {emoji:'🃏', x:50, y:350}, {emoji:'🎭', x:1150, y:350},
+  {emoji:'🍬', x:500, y:650}, {emoji:'🍪', x:700, y:650},
+  {emoji:'📯', x:200, y:100}, {emoji:'🏰', x:1000, y:100},
+  {emoji:'🍩', x:400, y:640}, {emoji:'📖', x:800, y:60},
+  {emoji:'🎪', x:600, y:660}, {emoji:'🪘', x:950, y:640},
+  {emoji:'🧁', x:250, y:650}, {emoji:'🪅', x:1100, y:640},
+  {emoji:'👯', x:350, y:75}, {emoji:'🎭', x:750, y:55},
+];
+
+// Stars for background
+const stars = [];
+for (let i = 0; i < 50; i++) {
+  stars.push({ x: Math.random() * 1200, y: Math.random() * 700, r: Math.random() * 2 + 0.5, phase: Math.random() * Math.PI * 2 });
+}
+
+// Restore last username
+const savedName = localStorage.getItem('purimPartyName');
+if (savedName) document.getElementById('nameInput').value = savedName;
+
+// ---- JOIN ----
+function joinParty() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return alert('אנא הכנס את שמך!');
+  myName = name;
+  localStorage.setItem('purimPartyName', name);
+  const costume = document.getElementById('costumeSelect').value;
+  socket.emit('join', { name, costume });
+  document.getElementById('joinScreen').style.display = 'none';
+  document.getElementById('partyRoom').style.display = 'block';
+  requestAnimationFrame(gameLoop);
+  // Start background Purim music at low volume
+  startBackgroundMusic();
+  // Resume audio context (must happen in user gesture)
+  if (voiceAudioCtx.state === 'suspended') voiceAudioCtx.resume();
+  // Pre-warm mediasoup transports
+  initMediasoup();
+}
+
+document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinParty(); });
+
+// ---- SOCKET EVENTS ----
+socket.on('connect', () => { myId = socket.id; });
+
+socket.on('state', (data) => {
+  players = data.players;
+  if (data.partyMusic) {
+    setMusic(data.partyMusic);
+  }
+  data.sharedMedia.forEach(m => {
+    mediaItems.push(m);
+    if (m.uploadedById === myId || m.uploadedBy === myName) allMyMedia.push(m);
+  });
+});
+
+socket.on('playerJoined', (p) => { players[p.id] = p; });
+socket.on('playerLeft', (id) => { delete players[id]; delete playerMicStatus[id]; unsubscribeFromProducer(id); });
+socket.on('playerMoved', (data) => {
+  if (players[data.id]) { players[data.id].x = data.x; players[data.id].y = data.y; }
+});
+
+socket.on('chatMessage', (data) => {
+  const sender = players[data.fromId];
+  if (sender) {
+    chatBubbles.push({ x: sender.x, y: sender.y - 50, text: data.text, from: data.from, time: Date.now() });
+  }
+});
+
+socket.on('receiveEmoji', (data) => {
+  showNotification(`${data.from} שלח לך ${data.emoji}`);
+});
+
+socket.on('floatingEmoji', (data) => {
+  floatingEmojis.push({ ...data, time: Date.now() });
+});
+
+socket.on('mediaShared', (item) => {
+  mediaItems.push(item);
+  if (mediaItems.length > 30) mediaItems.shift();
+  if (item.uploadedById === myId) {
+    allMyMedia.push(item);
+    // Track latest selfie by type
+    if (item.type === 'image') myLastSelfieImage = item.id;
+    else if (item.type === 'video') myLastSelfieVideo = item.id;
+  }
+});
+
+socket.on('mediaDeleted', (mediaId) => {
+  mediaItems = mediaItems.filter(m => m.id !== mediaId);
+  const idx = allMyMedia.findIndex(m => m.id === mediaId);
+  if (idx !== -1) allMyMedia.splice(idx, 1);
+});
+
+socket.on('partyMusicChanged', (data) => { setMusic(data); });
+
+socket.on('costumeChanged', (data) => {
+  if (players[data.id]) players[data.id].costume = data.costume;
+});
+
+function setMusic(data) {
+  document.getElementById('musicBar').style.display = 'flex';
+  document.getElementById('musicName').textContent = data.name + ' (מאת ' + data.uploadedBy + ')';
+  const audio = document.getElementById('partyAudio');
+  audio.src = data.url;
+}
+
+function toggleMusic() {
+  const audio = document.getElementById('partyAudio');
+  if (audio.paused) { audio.play(); document.getElementById('musicToggle').textContent = '⏸️'; }
+  else { audio.pause(); document.getElementById('musicToggle').textContent = '▶️'; }
+}
+
+// Background Purim music
+const bgMusic = new Audio('https://archive.org/download/hava-nagila-original/Hava%20Nagila%20Original.mp3');
+bgMusic.loop = true;
+bgMusic.volume = 0.15;
+
+function startBackgroundMusic() {
+  // Music starts muted by default — user can toggle with 🎶 button
+  bgMusic.pause();
+  document.getElementById('musicToggle').classList.add('music-off');
+  document.getElementById('musicToggle').textContent = '🎵';
+}
+
+function toggleBgMusic() {
+  const btn = document.getElementById('musicToggle');
+  if (bgMusic.paused) {
+    bgMusic.play().catch(() => {});
+    btn.classList.remove('music-off');
+    btn.textContent = '🎶';
+  } else {
+    bgMusic.pause();
+    btn.classList.add('music-off');
+    btn.textContent = '🎵';
+  }
+}
+
+// ---- CANVAS CLICK TO MOVE ----
+let hoveredVideoUrl = null;
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = 1200 / rect.width;
+  const scaleY = 700 / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  let foundVideo = null;
+  for (const item of mediaItems) {
+    if (item.type === 'video' && Math.abs(x - item.x) < 70 && Math.abs(y - item.y) < 55) {
+      foundVideo = item.url;
+      break;
+    }
+  }
+
+  if (foundVideo !== hoveredVideoUrl) {
+    // Mute previous
+    if (hoveredVideoUrl && videoCache[hoveredVideoUrl]) {
+      videoCache[hoveredVideoUrl].muted = true;
+    }
+    // Unmute new
+    if (foundVideo && videoCache[foundVideo]) {
+      videoCache[foundVideo].muted = false;
+    }
+    hoveredVideoUrl = foundVideo;
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  if (hoveredVideoUrl && videoCache[hoveredVideoUrl]) {
+    videoCache[hoveredVideoUrl].muted = true;
+  }
+  hoveredVideoUrl = null;
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = 1200 / rect.width;
+  const scaleY = 700 / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  // Check if clicking on a video enlarge button
+  for (const item of mediaItems) {
+    if (item.type === 'video' && item._enlargeX != null) {
+      if (Math.hypot(x - item._enlargeX, y - item._enlargeY) < 16) {
+        viewMediaLarge(item);
+        return;
+      }
+    }
+  }
+
+  // Check if clicking on a media item — opens player's gallery
+  for (const item of mediaItems) {
+    if (Math.abs(x - item.x) < 70 && Math.abs(y - item.y) < 55) {
+      viewMedia(item);
+      return;
+    }
+  }
+
+  // Check if clicking on any player
+  for (const [id, p] of Object.entries(players)) {
+    if (Math.hypot(x - p.x, y - p.y) < 35) {
+      if (id === myId) {
+        showSelfGallery();
+      } else {
+        showPlayerGallery(id);
+      }
+      return;
+    }
+  }
+
+  // Move player
+  selectedTarget = null;
+  socket.emit('move', { x, y });
+});
+
+// ---- PLAYER GALLERY ----
+function showPlayerGallery(playerId) {
+  const player = players[playerId];
+  if (!player) return;
+
+  selectedTarget = playerId;
+  document.querySelectorAll('#emojiPicker p')[0].textContent = `:שלח אימוג'י ל-${player.name}`;
+
+  const playerMedia = mediaItems.filter(m => m.uploadedById === playerId);
+  const overlay = document.createElement('div');
+  overlay.className = 'gallery-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const modal = document.createElement('div');
+  modal.className = 'gallery-modal';
+  modal.style.position = 'relative';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'gallery-close';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.onclick = () => overlay.remove();
+  modal.appendChild(closeBtn);
+
+  const title = document.createElement('h2');
+  title.textContent = `הגלריה של ${player.name}`;
+  modal.appendChild(title);
+
+  // Send emoji button
+  const emojiRow = document.createElement('div');
+  emojiRow.style.cssText = 'text-align:center;margin-bottom:16px;';
+  const sendEmojiBtn = document.createElement('button');
+  sendEmojiBtn.textContent = `😊 שלח אימוג'י ל-${player.name}`;
+  sendEmojiBtn.style.cssText = 'padding:8px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#ffd700,#ff6b35);color:#1a0533;font-weight:700;cursor:pointer;font-family:inherit;';
+  sendEmojiBtn.onclick = () => { overlay.remove(); toggleEmojiPicker(); };
+  emojiRow.appendChild(sendEmojiBtn);
+  modal.appendChild(emojiRow);
+
+  if (playerMedia.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'gallery-empty';
+    empty.textContent = 'אין תמונות או סרטונים עדיין';
+    modal.appendChild(empty);
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'gallery-grid';
+    playerMedia.forEach(item => {
+      const cell = document.createElement('div');
+      cell.className = 'gallery-item';
+      if (item.type === 'video') {
+        const vid = document.createElement('video');
+        vid.src = item.url; vid.muted = true;
+        cell.appendChild(vid);
+        const icon = document.createElement('div');
+        icon.className = 'video-icon';
+        icon.textContent = '▶️';
+        cell.appendChild(icon);
+      } else {
+        const img = document.createElement('img');
+        img.src = item.url;
+        cell.appendChild(img);
+      }
+      cell.onclick = () => { overlay.remove(); viewMedia(item); };
+      grid.appendChild(cell);
+    });
+    modal.appendChild(grid);
+  }
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function showSelfGallery() {
+  const me = players[myId];
+  if (!me) return;
+
+  const myMedia = mediaItems.filter(m => m.uploadedById === myId);
+  const overlay = document.createElement('div');
+  overlay.className = 'gallery-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const modal = document.createElement('div');
+  modal.className = 'gallery-modal';
+  modal.style.position = 'relative';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'gallery-close';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.onclick = () => overlay.remove();
+  modal.appendChild(closeBtn);
+
+  const title = document.createElement('h2');
+  title.textContent = 'הגלריה שלי';
+  modal.appendChild(title);
+
+  // Avatar change section
+  const avatarSection = document.createElement('div');
+  avatarSection.style.cssText = 'text-align:center;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,215,0,0.3);';
+  const avatarLabel = document.createElement('p');
+  avatarLabel.style.cssText = 'color:#c4a0ff;margin-bottom:8px;';
+  avatarLabel.textContent = ':שנה את הדמות שלך';
+  avatarSection.appendChild(avatarLabel);
+
+  const avatarGrid = document.createElement('div');
+  avatarGrid.className = 'avatar-picker-grid';
+  const originalCostume = me.costume;
+  let pendingCostume = null;
+
+  // Confirm/cancel buttons (hidden initially)
+  const confirmRow = document.createElement('div');
+  confirmRow.style.cssText = 'display:none;margin-top:8px;gap:8px;justify-content:center;';
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '✅ אישור';
+  confirmBtn.style.cssText = 'background:#4CAF50;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:14px;cursor:pointer;';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '❌ ביטול';
+  cancelBtn.style.cssText = 'background:#f44336;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:14px;cursor:pointer;';
+  confirmRow.appendChild(confirmBtn);
+  confirmRow.appendChild(cancelBtn);
+
+  function selectCostume(val, btn) {
+    if (val === originalCostume) { confirmRow.style.display = 'none'; pendingCostume = null; return; }
+    pendingCostume = val;
+    // Preview locally
+    if (players[myId]) players[myId].costume = val;
+    avatarGrid.querySelectorAll('button').forEach(b => b.className = '');
+    btn.className = 'selected';
+    confirmRow.style.display = 'flex';
+  }
+
+  confirmBtn.onclick = () => {
+    if (pendingCostume) {
+      socket.emit('changeCostume', pendingCostume);
+      pendingCostume = null;
+      overlay.remove();
+    }
+  };
+  cancelBtn.onclick = () => {
+    if (players[myId]) players[myId].costume = originalCostume;
+    avatarGrid.querySelectorAll('button').forEach(b => b.className = '');
+    // Re-select original
+    avatarGrid.querySelectorAll('button').forEach(b => {
+      if (b.dataset.costumeVal === originalCostume) b.className = 'selected';
+    });
+    confirmRow.style.display = 'none';
+    pendingCostume = null;
+  };
+
+  const costumes = [
+    {val:'queen_esther', label:'👸 אסתר'},
+    {val:'king', label:'🤴 אחשוורוש'},
+    {val:'mordechai', label:'🧔 מרדכי'},
+    {val:'clown', label:'🤡 ליצן'},
+    {val:'superhero', label:'🦸 גיבור על'},
+    {val:'princess', label:'👸 נסיכה'},
+    {val:'pirate', label:'🏴‍☠️ פיראט'},
+    {val:'wizard', label:'🧙 קוסם'},
+    {val:'ninja', label:'🥷 נינג\'ה'},
+    {val:'astronaut', label:'👨‍🚀 אסטרונאוט'},
+  ];
+  costumes.forEach(c => {
+    const btn = document.createElement('button');
+    btn.textContent = costumeEmojis[c.val];
+    btn.title = c.label;
+    btn.dataset.costumeVal = c.val;
+    if (me.costume === c.val) btn.className = 'selected';
+    btn.onclick = () => selectCostume(c.val, btn);
+    avatarGrid.appendChild(btn);
+  });
+  // Add selfie face options
+  mySelfies.forEach(url => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'padding:0;overflow:hidden;';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    btn.appendChild(img);
+    btn.title = 'הסלפי שלי';
+    const val = 'face:' + url;
+    btn.dataset.costumeVal = val;
+    if (me.costume === val) btn.className = 'selected';
+    btn.onclick = () => selectCostume(val, btn);
+    avatarGrid.appendChild(btn);
+  });
+  avatarSection.appendChild(avatarGrid);
+  avatarSection.appendChild(confirmRow);
+  modal.appendChild(avatarSection);
+
+  if (allMyMedia.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'gallery-empty';
+    empty.textContent = 'אין תמונות או סרטונים עדיין';
+    modal.appendChild(empty);
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'gallery-grid';
+    allMyMedia.forEach(item => {
+      const now = Date.now();
+      const age = (now - item.timestamp) / 1000;
+      const isFaded = age > 300;
+      const isVisible = mediaItems.some(m => m.id === item.id);
+
+      const cell = document.createElement('div');
+      cell.className = 'gallery-item';
+      if (isFaded || !isVisible) cell.style.opacity = '0.5';
+
+      if (item.type === 'video') {
+        const vid = document.createElement('video');
+        vid.src = item.url; vid.muted = true;
+        cell.appendChild(vid);
+        const icon = document.createElement('div');
+        icon.className = 'video-icon';
+        icon.textContent = '▶️';
+        cell.appendChild(icon);
+      } else {
+        const img = document.createElement('img');
+        img.src = item.url;
+        cell.appendChild(img);
+      }
+
+      // Resend button for faded items
+      if (isFaded || !isVisible) {
+        const resendBtn = document.createElement('button');
+        resendBtn.textContent = '🔄';
+        resendBtn.title = 'שלח שוב';
+        resendBtn.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(255,215,0,0.9);border:none;border-radius:50%;width:28px;height:28px;font-size:1em;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+        resendBtn.onclick = (e) => {
+          e.stopPropagation();
+          socket.emit('shareMedia', { url: item.url, type: item.type });
+          showNotification('נשלח שוב!');
+          cell.style.opacity = '1';
+          resendBtn.remove();
+        };
+        cell.appendChild(resendBtn);
+      }
+
+      // Delete button
+      const delBtn = document.createElement('button');
+      delBtn.className = 'gallery-delete-btn';
+      delBtn.textContent = '❌';
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (confirm('האם למחוק את הפריט הזה?')) {
+          socket.emit('deleteMedia', item.id);
+          cell.remove();
+        }
+      };
+      cell.appendChild(delBtn);
+      cell.onclick = () => {
+        overlay.remove();
+        if (item.type === 'video') viewMediaLarge(item);
+        else viewMedia(item);
+      };
+      grid.appendChild(cell);
+    });
+    modal.appendChild(grid);
+  }
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+// ---- CHAT ----
+function toggleChat() {
+  const ci = document.getElementById('chatInput');
+  ci.style.display = ci.style.display === 'flex' ? 'none' : 'flex';
+  if (ci.style.display === 'flex') document.getElementById('chatText').focus();
+  document.getElementById('emojiPicker').style.display = 'none';
+}
+
+document.getElementById('chatText').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const text = e.target.value.trim();
+    if (text) { socket.emit('chatMessage', text); e.target.value = ''; }
+  }
+});
+
+// ---- EMOJI PICKER ----
+function toggleEmojiPicker() {
+  const ep = document.getElementById('emojiPicker');
+  ep.style.display = ep.style.display === 'block' ? 'none' : 'block';
+  document.getElementById('chatInput').style.display = 'none';
+}
+
+// Build emoji grid
+const emojiGrid = document.getElementById('emojiGrid');
+positiveEmojis.forEach(emoji => {
+  const btn = document.createElement('button');
+  btn.className = 'emoji-btn';
+  btn.textContent = emoji;
+  btn.onclick = () => sendEmoji(emoji);
+  emojiGrid.appendChild(btn);
+});
+
+function sendEmoji(emoji) {
+  if (selectedTarget) {
+    socket.emit('sendEmoji', { emoji, to: selectedTarget });
+  } else {
+    const me = players[myId];
+    if (!me) return;
+    let nearest = null, minDist = 250;
+    for (const [id, p] of Object.entries(players)) {
+      if (id === myId) continue;
+      const d = Math.hypot(me.x - p.x, me.y - p.y);
+      if (d < minDist) { minDist = d; nearest = id; }
+    }
+    if (nearest) {
+      socket.emit('sendEmoji', { emoji, to: nearest });
+    } else {
+      showNotification('תתקרב למישהו קודם!');
+    }
+  }
+  document.getElementById('emojiPicker').style.display = 'none';
+}
+
+// ---- UPLOAD ----
+function showUploadModal(type) {
+  currentUploadType = type;
+  document.getElementById('uploadModal').style.display = 'flex';
+  document.getElementById('uploadStatus').textContent = '';
+  const titles = { image: '📸 שתף תמונה', video: '🎬 שתף קליפ (עד 10 שניות)', music: '🎵 מוזיקת מסיבה', selfie: '🤳 צלם סלפי' };
+  const descs = { image: 'העלה תמונת JPG/PNG', video: 'העלה סרטון קצר (עד 10 שניות)', music: 'העלה מוזיקה (MP3) לכל המסיבה', selfie: 'השתמש במצלמה לצלם סלפי!' };
+  const accepts = { image: 'image/*', video: 'video/*', music: 'audio/*', selfie: '' };
+  document.getElementById('modalTitle').textContent = titles[type];
+  document.getElementById('modalDesc').textContent = descs[type];
+  document.getElementById('fileInput').accept = accepts[type] || '';
+  document.getElementById('fileInput').style.display = type === 'selfie' ? 'none' : 'block';
+  document.getElementById('selfieArea').style.display = type === 'selfie' ? 'block' : 'none';
+  document.getElementById('uploadBtn').style.display = type === 'selfie' ? 'none' : 'block';
+
+  if (type === 'selfie') startSelfieCamera();
+}
+
+function closeModal() {
+  document.getElementById('uploadModal').style.display = 'none';
+  document.getElementById('selfiePreview').style.display = 'none';
+  document.getElementById('selfiePreviewContent').innerHTML = '';
+  pendingSelfieBlob = null;
+  pendingSelfieType = null;
+  if (selfieStream) { selfieStream.getTracks().forEach(t => t.stop()); selfieStream = null; }
+}
+
+async function startSelfieCamera() {
+  const video = document.getElementById('selfieVideo');
+  const snapBtn = document.getElementById('snapBtn');
+  const fallback = document.getElementById('selfieFallback');
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No camera API');
+    selfieStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+    video.srcObject = selfieStream;
+    video.parentElement.style.display = '';
+    snapBtn.style.display = 'flex';
+    document.getElementById('recordBtn').style.display = 'flex';
+    document.getElementById('selfieControls').style.display = 'flex';
+    fallback.style.display = 'none';
+  } catch(e) {
+    console.log('Camera error:', e);
+    video.parentElement.style.display = 'none';
+    snapBtn.style.display = 'none';
+    document.getElementById('recordBtn').style.display = 'none';
+    document.getElementById('selfieControls').style.display = 'none';
+    fallback.style.display = 'block';
+  }
+}
+
+async function uploadSelfieFile() {
+  const file = document.getElementById('selfieFileInput').files[0];
+  if (!file) return;
+  const isVideo = file.type.startsWith('video/');
+  if (isVideo) {
+    const valid = await checkVideoDuration(file);
+    if (!valid) { document.getElementById('uploadStatus').textContent = 'הסרטון חייב להיות 10 שניות או פחות!'; return; }
+  }
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('mediaType', isVideo ? 'video' : 'image');
+  try {
+    document.getElementById('uploadStatus').textContent = '...מעלה';
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    socket.emit('shareMedia', { url: data.url, type: isVideo ? 'video' : 'image' });
+    showNotification('הסלפי שותף!');
+    closeModal();
+  } catch(e) { document.getElementById('uploadStatus').textContent = 'ההעלאה נכשלה'; }
+}
+
+let selfieRecorder = null;
+let selfieRecordChunks = [];
+let selfieRecordTimer = null;
+let selfieRecordSeconds = 0;
+
+function startSelfieRecording() {
+  if (!selfieStream) return;
+  selfieRecordChunks = [];
+  selfieRecordSeconds = 0;
+  // Pick best supported mimeType for clean audio
+  const mimeOptions = [
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm'
+  ];
+  const selfieMime = mimeOptions.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+  selfieRecorder = new MediaRecorder(selfieStream, { mimeType: selfieMime, audioBitsPerSecond: 128000, videoBitsPerSecond: 2500000 });
+  selfieRecorder.ondataavailable = (e) => { if (e.data.size > 0) selfieRecordChunks.push(e.data); };
+  selfieRecorder.onstop = () => {
+    const blob = new Blob(selfieRecordChunks, { type: selfieMime });
+    pendingSelfieBlob = blob;
+    pendingSelfieType = 'video';
+    showSelfiePreview(URL.createObjectURL(blob), 'video');
+  };
+  selfieRecorder.start(100); // collect data every 100ms for cleaner output
+  document.getElementById('snapBtn').style.display = 'none';
+  document.getElementById('recordBtn').style.display = 'none';
+  document.getElementById('stopRecordBtn').style.display = 'inline-block';
+  const timerEl = document.getElementById('recordTimer');
+  timerEl.className = 'record-timer active';
+  timerEl.textContent = '10s';
+  selfieRecordTimer = setInterval(() => {
+    selfieRecordSeconds++;
+    const remaining = 10 - selfieRecordSeconds;
+    timerEl.textContent = remaining + 's';
+    if (remaining <= 3) timerEl.className = 'record-timer active warning';
+    if (remaining <= 0) stopSelfieRecording();
+  }, 1000);
+}
+
+function stopSelfieRecording() {
+  if (selfieRecorder && selfieRecorder.state === 'recording') {
+    selfieRecorder.stop();
+  }
+  clearInterval(selfieRecordTimer);
+  document.getElementById('stopRecordBtn').style.display = 'none';
+  document.getElementById('recordTimer').className = 'record-timer';
+  document.getElementById('snapBtn').style.display = 'flex';
+  document.getElementById('recordBtn').style.display = 'flex';
+}
+
+let pendingSelfieBlob = null;
+let pendingSelfieType = null; // 'image' or 'video'
+
+async function takeSelfie() {
+  const video = document.getElementById('selfieVideo');
+  const c = document.getElementById('selfieCanvas');
+  c.getContext('2d').drawImage(video, 0, 0, 400, 300);
+  c.toBlob((blob) => {
+    pendingSelfieBlob = blob;
+    pendingSelfieType = 'image';
+    showSelfiePreview(URL.createObjectURL(blob), 'image');
+  }, 'image/jpeg');
+}
+
+function showSelfiePreview(url, type) {
+  const preview = document.getElementById('selfiePreview');
+  const content = document.getElementById('selfiePreviewContent');
+  content.innerHTML = '';
+  if (type === 'video') {
+    const v = document.createElement('video');
+    v.src = url; v.controls = true; v.autoplay = true; v.loop = true;
+    v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    content.appendChild(v);
+  } else {
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    content.appendChild(img);
+  }
+  preview.style.display = 'block';
+  // Hide camera controls while previewing
+  document.getElementById('selfieVideo').parentElement.style.display = 'none';
+  document.getElementById('selfieControls').style.display = 'none';
+}
+
+async function confirmSelfie() {
+  if (!pendingSelfieBlob) return;
+  const formData = new FormData();
+  const ext = pendingSelfieType === 'video' ? 'selfie-video.webm' : 'selfie.jpg';
+  formData.append('file', pendingSelfieBlob, ext);
+  formData.append('mediaType', pendingSelfieType);
+  try {
+    document.getElementById('uploadStatus').textContent = '...מעלה';
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    // Fade out old selfie of same type
+    const oldId = pendingSelfieType === 'image' ? myLastSelfieImage : myLastSelfieVideo;
+    if (oldId) {
+      const oldItem = mediaItems.find(m => m.id === oldId);
+      if (oldItem) {
+        oldItem._fadingAt = Date.now();
+        setTimeout(() => { socket.emit('deleteMedia', oldId); }, 5000);
+      }
+    }
+    socket.emit('shareMedia', { url: data.url, type: pendingSelfieType });
+    if (pendingSelfieType === 'image') {
+      // Request server-side face crop
+      try {
+        const cropRes = await fetch('/face-crop?url=' + encodeURIComponent(data.url));
+        const cropData = await cropRes.json();
+        if (cropData.url) {
+          mySelfies.push(cropData.url);
+          loadFaceImage(cropData.url);
+        }
+      } catch(e) {
+        // Fallback to original image
+        mySelfies.push(data.url);
+        loadFaceImage(data.url);
+      }
+    }
+    showNotification(pendingSelfieType === 'video' ? 'סלפי וידאו שותף!' : 'הסלפי שותף!');
+    pendingSelfieBlob = null;
+    pendingSelfieType = null;
+    closeModal();
+  } catch(e) { document.getElementById('uploadStatus').textContent = 'ההעלאה נכשלה'; }
+}
+
+function cancelSelfiePreview() {
+  pendingSelfieBlob = null;
+  pendingSelfieType = null;
+  document.getElementById('selfiePreview').style.display = 'none';
+  document.getElementById('selfiePreviewContent').innerHTML = '';
+  // Restore camera view and controls
+  document.getElementById('selfieVideo').parentElement.style.display = '';
+  document.getElementById('selfieControls').style.display = 'flex';
+}
+
+async function doUpload() {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+
+  if (currentUploadType === 'video') {
+    const valid = await checkVideoDuration(file);
+    if (!valid) { document.getElementById('uploadStatus').textContent = 'הסרטון חייב להיות 10 שניות או פחות!'; return; }
+  }
+
+  document.getElementById('uploadStatus').textContent = '...מעלה';
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('mediaType', currentUploadType);
+
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.error) { document.getElementById('uploadStatus').textContent = data.error; return; }
+
+    if (currentUploadType === 'music') {
+      socket.emit('setPartyMusic', { url: data.url, name: file.name });
+    } else {
+      socket.emit('shareMedia', { url: data.url, type: currentUploadType === 'video' ? 'video' : 'image' });
+    }
+    showNotification('שותף בהצלחה!');
+    closeModal();
+  } catch(e) { document.getElementById('uploadStatus').textContent = 'ההעלאה נכשלה'; }
+}
+
+function checkVideoDuration(file) {
+  return new Promise(resolve => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(video.src);
+      resolve(video.duration <= 10);
+    };
+    video.onerror = () => resolve(false);
+    video.src = URL.createObjectURL(file);
+  });
+}
+
+// ---- NOTIFICATIONS ----
+function showNotification(text) {
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(255,215,0,0.9);color:#1a0533;padding:10px 24px;border-radius:12px;font-weight:700;z-index:999;animation:bubblePop 0.3s ease-out;';
+  div.textContent = text;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2500);
+}
+
+// ---- GAME LOOP / RENDERING ----
+function gameLoop() {
+  draw();
+  updateNearby();
+  updateConfetti();
+  updateVoiceConnections();
+  updateMusicDucking();
+  requestAnimationFrame(gameLoop);
+}
+
+function updateConfetti() {
+  confetti.forEach(c => {
+    c.y += c.speed;
+    c.x += c.drift;
+    c.rotation += 1;
+    if (c.y > 710) { c.y = -5; c.x = Math.random() * 1200; }
+    if (c.x > 1210) c.x = -5;
+    if (c.x < -10) c.x = 1205;
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, 1200, 700);
+  drawBackground();
+  drawConfetti();
+  drawDecorations();
+  drawMediaItems();
+  drawPlayers();
+  drawChatBubbles();
+  drawFloatingEmojis();
+}
+
+function drawBackground() {
+  // Gradient sky
+  const grad = ctx.createLinearGradient(0, 0, 0, 700);
+  grad.addColorStop(0, '#0d0221');
+  grad.addColorStop(0.4, '#1a0533');
+  grad.addColorStop(0.7, '#2d1b69');
+  grad.addColorStop(1, '#4a1a6b');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1200, 700);
+
+  // Stars
+  const now = Date.now() / 1000;
+  stars.forEach(s => {
+    const brightness = 0.4 + 0.6 * Math.sin(now + s.phase);
+    ctx.globalAlpha = brightness;
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Stage curtains
+  const curtainGrad1 = ctx.createLinearGradient(0, 0, 80, 0);
+  curtainGrad1.addColorStop(0, 'rgba(139,0,0,0.6)');
+  curtainGrad1.addColorStop(1, 'rgba(139,0,0,0)');
+  ctx.fillStyle = curtainGrad1;
+  ctx.fillRect(0, 0, 80, 500);
+
+  const curtainGrad2 = ctx.createLinearGradient(1200, 0, 1120, 0);
+  curtainGrad2.addColorStop(0, 'rgba(139,0,0,0.6)');
+  curtainGrad2.addColorStop(1, 'rgba(139,0,0,0)');
+  ctx.fillStyle = curtainGrad2;
+  ctx.fillRect(1120, 0, 80, 500);
+
+  // Floor / stage area
+  ctx.fillStyle = 'rgba(139,69,19,0.3)';
+  ctx.fillRect(0, 550, 1200, 150);
+  ctx.fillStyle = 'rgba(139,69,19,0.15)';
+  ctx.fillRect(0, 520, 1200, 30);
+
+  // DJ area
+  ctx.fillStyle = 'rgba(147,51,234,0.15)';
+  roundRect(ctx, 500, 555, 200, 80, 12);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,215,0,0.3)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, 500, 555, 200, 80, 12);
+  ctx.stroke();
+  ctx.font = '24px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🎵🎶🎵', 600, 600);
+
+  // Decorative banners - row 1
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, 100);
+  for (let x = 0; x <= 1200; x += 60) {
+    ctx.lineTo(x, 100 + Math.sin(x / 60) * 15);
+  }
+  ctx.stroke();
+
+  // Triangle bunting - row 1
+  for (let x = 20; x < 1200; x += 60) {
+    const colors = ['#ffd700', '#ff6b35', '#e91e63', '#9c27b0', '#00bcd4'];
+    ctx.fillStyle = colors[Math.floor(x / 60) % colors.length];
+    ctx.beginPath();
+    ctx.moveTo(x, 100 + Math.sin(x/60)*15);
+    ctx.lineTo(x + 15, 130 + Math.sin(x/60)*15);
+    ctx.lineTo(x + 30, 100 + Math.sin((x+30)/60)*15);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Bunting row 2
+  ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, 180);
+  for (let x = 0; x <= 1200; x += 80) {
+    ctx.lineTo(x, 180 + Math.sin(x / 80 + 1) * 12);
+  }
+  ctx.stroke();
+  for (let x = 30; x < 1200; x += 80) {
+    const colors = ['#00bcd4', '#4caf50', '#ffd700', '#e91e63', '#ff6b35'];
+    ctx.fillStyle = colors[Math.floor(x / 80) % colors.length];
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.moveTo(x, 180 + Math.sin(x/80+1)*12);
+    ctx.lineTo(x + 12, 205 + Math.sin(x/80+1)*12);
+    ctx.lineTo(x + 24, 180 + Math.sin((x+24)/80+1)*12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Hamantaschen on walls
+  drawHamantasch(100, 280, 18);
+  drawHamantasch(1080, 300, 16);
+  drawHamantasch(550, 510, 14);
+
+  // Megillah scroll shapes
+  drawMegillah(180, 450);
+  drawMegillah(1020, 470);
+
+  // Title
+  ctx.save();
+  ctx.textAlign = 'center';
+  // Glow effect
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 20;
+  ctx.font = 'bold 36px "Fredoka One", cursive';
+  // Gradient fill
+  const titleGrad = ctx.createLinearGradient(400, 0, 800, 0);
+  titleGrad.addColorStop(0, '#ffd700');
+  titleGrad.addColorStop(0.3, '#fff8dc');
+  titleGrad.addColorStop(0.5, '#ffd700');
+  titleGrad.addColorStop(0.7, '#fff8dc');
+  titleGrad.addColorStop(1, '#ffd700');
+  ctx.fillStyle = titleGrad;
+  ctx.fillText('🎭  חג פורים שמח!  🎭', 600, 38);
+  // Outline
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,107,53,0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeText('🎭  חג פורים שמח!  🎭', 600, 38);
+  ctx.restore();
+  ctx.textAlign = 'left';
+}
+
+function drawHamantasch(cx, cy, size) {
+  ctx.fillStyle = '#d4a040';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - size);
+  ctx.lineTo(cx - size, cy + size * 0.8);
+  ctx.lineTo(cx + size, cy + size * 0.8);
+  ctx.closePath();
+  ctx.fill();
+  // Filling
+  ctx.fillStyle = '#8b0000';
+  ctx.beginPath();
+  ctx.arc(cx, cy + size * 0.2, size * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawMegillah(x, y) {
+  ctx.fillStyle = 'rgba(210,180,120,0.4)';
+  ctx.fillRect(x - 20, y - 5, 40, 35);
+  ctx.fillStyle = 'rgba(139,90,43,0.5)';
+  ctx.beginPath();
+  ctx.arc(x - 20, y + 12, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 20, y + 12, 6, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawConfetti() {
+  confetti.forEach(c => {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.rotation * Math.PI / 180);
+    ctx.fillStyle = c.color;
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(-c.size/2, -c.size/4, c.size, c.size/2);
+    ctx.restore();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function drawDecorations() {
+  const now = Date.now() / 1000;
+  decorations.forEach((d, i) => {
+    const floatY = Math.sin(now + i) * 5;
+    ctx.font = '32px serif';
+    ctx.fillText(d.emoji, d.x, d.y + floatY);
+  });
+}
+
+function drawPlayers() {
+  const me = players[myId];
+  const now = Date.now() / 1000;
+  for (const [id, p] of Object.entries(players)) {
+    // Draw proximity circle for self
+    if (id === myId) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 200, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,215,0,0.03)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,215,0,0.1)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Highlight if selected target
+    if (id === selectedTarget) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 38, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    // Glow effect
+    const glowSize = 35 + Math.sin(now * 2 + p.x) * 3;
+    const glowGrad = ctx.createRadialGradient(p.x, p.y, 20, p.x, p.y, glowSize);
+    glowGrad.addColorStop(0, 'rgba(255,215,0,0.1)');
+    glowGrad.addColorStop(1, 'rgba(255,215,0,0)');
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, glowSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Avatar circle
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 28, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    ctx.strokeStyle = id === myId ? '#ffd700' : 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = id === myId ? 3 : 1.5;
+    ctx.stroke();
+
+    // Costume: face image or emoji
+    if (p.costume && p.costume.startsWith('face:')) {
+      const faceUrl = p.costume.slice(5);
+      const fImg = loadFaceImage(faceUrl);
+      if (fImg._loaded) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 28, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(fImg, p.x - 28, p.y - 28, 56, 56);
+        ctx.restore();
+      }
+    } else {
+      const emoji = costumeEmojis[p.costume] || '🎭';
+      ctx.font = '28px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(emoji, p.x, p.y + 10);
+    }
+
+    // Hat/crown above avatar
+    const hat = costumeHats[p.costume] || '✨';
+    ctx.font = '14px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(hat, p.x, p.y - 30);
+
+    // Mic icon if broadcasting
+    if (playerMicStatus[id]) {
+      ctx.font = '22px serif';
+      ctx.fillText('🎤', p.x, p.y - 44);
+    }
+
+    // Name
+    ctx.font = 'bold 12px Nunito, sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(p.name, p.x, p.y + 48);
+    ctx.textAlign = 'left';
+
+    // Connection line to nearby
+    if (me && id !== myId) {
+      const dist = Math.hypot(me.x - p.x, me.y - p.y);
+      if (dist < 250) {
+        ctx.beginPath();
+        ctx.moveTo(me.x, me.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = `rgba(255,215,0,${0.15 * (1 - dist/250)})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawChatBubbles() {
+  const now = Date.now();
+  chatBubbles = chatBubbles.filter(b => now - b.time < 5000);
+  chatBubbles.forEach(b => {
+    const alpha = Math.max(0, 1 - (now - b.time) / 5000);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    const metrics = ctx.measureText(b.text);
+    const w = Math.min(metrics.width + 20, 200);
+    const h = 30;
+    roundRect(ctx, b.x - w/2, b.y - h, w, h, 10);
+    ctx.fill();
+    ctx.fillStyle = '#1a0533';
+    ctx.font = '12px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(b.text.slice(0, 40), b.x, b.y - 10);
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawFloatingEmojis() {
+  const now = Date.now();
+  floatingEmojis = floatingEmojis.filter(e => now - e.time < 2000);
+  floatingEmojis.forEach(e => {
+    const progress = (now - e.time) / 2000;
+    const y = e.y - progress * 80;
+    const alpha = 1 - progress;
+    ctx.globalAlpha = alpha;
+    ctx.font = `${24 + progress * 12}px serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(e.emoji, e.x, y);
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawMediaItems() {
+  const now = Date.now();
+  const W = 140, H = 105;
+  mediaItems.forEach(item => {
+    const age = (now - item.timestamp) / 1000;
+    if (age > 300) return;
+    let alpha = age > 260 ? (300 - age) / 40 : 1;
+    // Fast fade when replaced by a new selfie
+    if (item._fadingAt) {
+      const fadeAge = (now - item._fadingAt) / 1000;
+      if (fadeAge >= 5) return;
+      alpha = Math.min(alpha, 1 - fadeAge / 5);
+    }
+    ctx.globalAlpha = alpha;
+
+    const x = item.x - W/2;
+    const y = item.y - H/2;
+
+    // Ornate frame background
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    roundRect(ctx, x - 6, y - 6, W + 12, H + 32, 12);
+    ctx.fill();
+
+    // Gradient border (gold -> orange)
+    const frameGrad = ctx.createLinearGradient(x, y, x + W, y + H);
+    frameGrad.addColorStop(0, '#ffd700');
+    frameGrad.addColorStop(0.5, '#ff8c00');
+    frameGrad.addColorStop(1, '#ffd700');
+    ctx.strokeStyle = frameGrad;
+    ctx.lineWidth = 3;
+    roundRect(ctx, x - 6, y - 6, W + 12, H + 32, 12);
+    ctx.stroke();
+
+    // Inner shadow
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, x - 2, y - 2, W + 4, H + 4, 8);
+    ctx.stroke();
+
+    if (item.type === 'image') {
+      if (!imageCache[item.url]) {
+        const img = new Image();
+        img.src = item.url;
+        imageCache[item.url] = img;
+      }
+      const img = imageCache[item.url];
+      if (img.complete && img.naturalWidth > 0) {
+        const aspect = img.naturalWidth / img.naturalHeight;
+        let dw = W, dh = H;
+        if (aspect > W/H) { dh = W / aspect; } else { dw = H * aspect; }
+        const dx = x + (W - dw) / 2;
+        const dy = y + (H - dh) / 2;
+        ctx.save();
+        ctx.beginPath();
+        roundRect(ctx, x, y, W, H, 6);
+        ctx.clip();
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#2d1b69';
+        ctx.fillRect(x, y, W, H);
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '28px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('📸', item.x, item.y + 8);
+      }
+    } else if (item.type === 'video') {
+      if (!videoCache[item.url]) {
+        const vid = document.createElement('video');
+        vid.src = item.url;
+        vid.muted = true;
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.preload = 'auto';
+        vid.crossOrigin = 'anonymous';
+        vid.addEventListener('loadeddata', () => {
+          vid._ready = true;
+          vid.play().catch(() => {});
+        });
+        videoCache[item.url] = vid;
+      }
+      const vid = videoCache[item.url];
+      if (vid._ready && vid.videoWidth > 0) {
+        // Ensure playing
+        if (vid.paused) vid.play().catch(() => {});
+        ctx.save();
+        ctx.beginPath();
+        roundRect(ctx, x, y, W, H, 6);
+        ctx.clip();
+        const aspect = vid.videoWidth / vid.videoHeight;
+        let dw = W, dh = H;
+        if (aspect > W/H) { dh = W / aspect; } else { dw = H * aspect; }
+        const dx = x + (W - dw) / 2;
+        const dy = y + (H - dh) / 2;
+        ctx.drawImage(vid, dx, dy, dw, dh);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#2d1b69';
+        roundRect(ctx, x, y, W, H, 6);
+        ctx.fill();
+        // Loading spinner
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '24px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🎬', item.x, item.y + 8);
+      }
+      // Enlarge button (bottom-right corner of frame)
+      const ebx = x + W - 4, eby = y + H - 4;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.beginPath();
+      ctx.arc(ebx, eby, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(ebx, eby, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.font = '13px serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('🔍', ebx, eby + 5);
+      // Store enlarge button position on item for hit detection
+      item._enlargeX = ebx;
+      item._enlargeY = eby;
+    }
+
+    // Mask emoji at top-left corner
+    ctx.font = '16px serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('🎭', x - 4, y - 8);
+
+    // Ribbon-style label
+    ctx.fillStyle = 'rgba(255,107,53,0.85)';
+    const labelText = item.uploadedBy;
+    ctx.font = 'bold 11px Nunito, sans-serif';
+    const labelW = ctx.measureText(labelText).width + 16;
+    const ribbonX = item.x - labelW/2;
+    const ribbonY = y + H + 6;
+    ctx.fillRect(ribbonX, ribbonY, labelW, 18);
+    // Ribbon ends
+    ctx.beginPath();
+    ctx.moveTo(ribbonX, ribbonY);
+    ctx.lineTo(ribbonX - 5, ribbonY + 9);
+    ctx.lineTo(ribbonX, ribbonY + 18);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(ribbonX + labelW, ribbonY);
+    ctx.lineTo(ribbonX + labelW + 5, ribbonY + 9);
+    ctx.lineTo(ribbonX + labelW, ribbonY + 18);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText(labelText, item.x, ribbonY + 13);
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1;
+  });
+}
+
+// Click on media items to view
+canvas.addEventListener('dblclick', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = 1200 / rect.width;
+  const scaleY = 700 / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  for (const item of mediaItems) {
+    if (Math.abs(x - item.x) < 70 && Math.abs(y - item.y) < 55) {
+      viewMedia(item);
+      return;
+    }
+  }
+});
+
+function viewMediaLarge(item) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  const container = document.createElement('div');
+  container.style.cssText = 'position:relative;width:66vw;height:66vh;display:flex;align-items:center;justify-content:center;background:#000;border-radius:16px;overflow:hidden;border:3px solid rgba(255,215,0,0.5);';
+  const v = document.createElement('video');
+  v.src = item.url;
+  v.controls = true;
+  v.autoplay = true;
+  v.loop = true;
+  v.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:16px;';
+  container.appendChild(v);
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);border:none;color:#ffd700;font-size:2em;cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;';
+  closeBtn.onclick = () => overlay.remove();
+  container.appendChild(closeBtn);
+  overlay.appendChild(container);
+  document.body.appendChild(overlay);
+}
+
+function viewMedia(item) {
+  // Show all media from this person in a scrollable gallery
+  const allFromPlayer = mediaItems.filter(m => m.uploadedById === item.uploadedById);
+  if (allFromPlayer.length === 0) return;
+
+  const startIdx = Math.max(0, allFromPlayer.findIndex(m => m.id === item.id));
+  let currentIdx = startIdx;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;';
+
+  // Player name header
+  const header = document.createElement('div');
+  const playerName = item.uploadedBy || 'אורח';
+  header.textContent = allFromPlayer.length > 1 ? `${playerName} (${currentIdx + 1}/${allFromPlayer.length})` : playerName;
+  header.style.cssText = 'color:#ffd700;font-size:18px;font-weight:bold;text-align:center;';
+  container.appendChild(header);
+
+  // Media display area
+  const mediaBox = document.createElement('div');
+  mediaBox.style.cssText = 'max-width:80vw;max-height:70vh;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+  container.appendChild(mediaBox);
+
+  function showItem(idx) {
+    currentIdx = idx;
+    const m = allFromPlayer[idx];
+    mediaBox.innerHTML = '';
+    if (m.type === 'video') {
+      const v = document.createElement('video');
+      v.src = m.url; v.controls = true; v.autoplay = true;
+      v.style.cssText = 'max-width:80vw;max-height:70vh;border-radius:16px;';
+      mediaBox.appendChild(v);
+    } else {
+      const img = document.createElement('img');
+      img.src = m.url;
+      img.style.cssText = 'max-width:80vw;max-height:70vh;border-radius:16px;';
+      mediaBox.appendChild(img);
+    }
+    header.textContent = allFromPlayer.length > 1 ? `${playerName} (${idx + 1}/${allFromPlayer.length})` : playerName;
+    const atStart = idx <= 0;
+    const atEnd = idx >= allFromPlayer.length - 1;
+    prevBtn.style.opacity = atStart ? '0.3' : '1';
+    prevBtn.style.cursor = atStart ? 'default' : 'pointer';
+    nextBtn.style.opacity = atEnd ? '0.3' : '1';
+    nextBtn.style.cursor = atEnd ? 'default' : 'pointer';
+  }
+
+  // Navigation buttons
+  const navRow = document.createElement('div');
+  navRow.style.cssText = 'display:flex;gap:16px;align-items:center;';
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '◀';
+  prevBtn.style.cssText = 'background:rgba(255,215,0,0.8);border:none;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;';
+  prevBtn.onclick = (e) => { e.stopPropagation(); if (currentIdx > 0) showItem(currentIdx - 1); };
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '▶';
+  nextBtn.style.cssText = 'background:rgba(255,215,0,0.8);border:none;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;';
+  nextBtn.onclick = (e) => { e.stopPropagation(); if (currentIdx < allFromPlayer.length - 1) showItem(currentIdx + 1); };
+  navRow.appendChild(prevBtn);
+  navRow.appendChild(nextBtn);
+
+  if (allFromPlayer.length > 1) container.appendChild(navRow);
+
+  showItem(startIdx);
+  overlay.appendChild(container);
+  document.body.appendChild(overlay);
+}
+
+function updateNearby() {
+  const me = players[myId];
+  if (!me) return;
+  const nearby = [];
+  for (const [id, p] of Object.entries(players)) {
+    if (id === myId) continue;
+    if (Math.hypot(me.x - p.x, me.y - p.y) < 250) {
+      nearby.push(p.name);
+    }
+  }
+  document.getElementById('nearbyNames').textContent = nearby.length ? nearby.join(', ') : 'אין אף אחד בקרבת מקום';
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ---- VOICE CHAT (mediasoup SFU) ----
+let micOn = false;
+let micStream = null;
+let playerMicStatus = {}; // peerId → boolean
+const voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const VOICE_PROXIMITY = 250;
+let normalBgVolume = 0.15;
+let normalPartyVolume = 1.0;
+let isDucked = false;
+let speechMuted = false;
+
+function toggleSpeechMute() {
+  speechMuted = !speechMuted;
+  const btn = document.getElementById('speechMuteBtn');
+  if (speechMuted) {
+    btn.textContent = '🔇';
+    btn.classList.add('speech-muted');
+    for (const entry of Object.values(msConsumers)) {
+      entry.gainNode.gain.value = 0;
+    }
+  } else {
+    btn.textContent = '🔊';
+    btn.classList.remove('speech-muted');
+    // gains will be restored by updateVoiceConnections on next frame
+  }
+}
+
+// mediasoup client state
+let msDevice = null;
+let msSendTransport = null;
+let msRecvTransport = null;
+let msProducer = null;
+const msConsumers = {}; // producerSocketId → { consumer, gainNode, analyser, source, audio }
+let msSendTransportId = null;
+let msRecvTransportId = null;
+
+function socketRequest(event, data) {
+  return new Promise((resolve, reject) => {
+    socket.emit(event, data, (resp) => {
+      if (resp && resp.error) reject(new Error(resp.error));
+      else resolve(resp);
+    });
+  });
+}
+
+async function initMediasoup() {
+  try {
+    const routerCaps = await socketRequest('msGetRouterCapabilities', {});
+    msDevice = new mediasoupClient.Device();
+    await msDevice.load({ routerRtpCapabilities: routerCaps });
+
+    const transportParams = await socketRequest('msCreateTransports', {});
+    msSendTransportId = transportParams.send.id;
+    msRecvTransportId = transportParams.recv.id;
+
+    // Send transport
+    msSendTransport = msDevice.createSendTransport(transportParams.send);
+    msSendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
+      socketRequest('msConnectTransport', { transportId: msSendTransportId, dtlsParameters })
+        .then(callback).catch(errback);
+    });
+    msSendTransport.on('produce', async ({ kind, rtpParameters }, callback, errback) => {
+      try {
+        const resp = await socketRequest('msProduce', { transportId: msSendTransportId, kind, rtpParameters });
+        callback({ id: resp.id });
+      } catch (e) { errback(e); }
+    });
+
+    // Recv transport
+    msRecvTransport = msDevice.createRecvTransport(transportParams.recv);
+    msRecvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
+      socketRequest('msConnectTransport', { transportId: msRecvTransportId, dtlsParameters })
+        .then(callback).catch(errback);
+    });
+
+    console.log('mediasoup client initialized');
+  } catch (e) {
+    console.error('initMediasoup failed:', e);
+  }
+}
+
+async function toggleMic() {
+  if (!micOn) {
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micOn = true;
+      playerMicStatus[myId] = true;
+      const btn = document.getElementById('micButton');
+      btn.classList.add('mic-active');
+      btn.textContent = '🎤';
+      socket.emit('micStatus', { micOn: true });
+      // Produce audio track via SFU
+      const track = micStream.getAudioTracks()[0];
+      msProducer = await msSendTransport.produce({ track });
+    } catch (err) {
+      console.warn('Mic access denied:', err);
+    }
+  } else {
+    micOn = false;
+    playerMicStatus[myId] = false;
+    const btn = document.getElementById('micButton');
+    btn.classList.remove('mic-active');
+    btn.textContent = '🎙️';
+    socket.emit('micStatus', { micOn: false });
+    if (msProducer) {
+      msProducer.close();
+      msProducer = null;
+      await socketRequest('msCloseProducer', {});
+    }
+    if (micStream) {
+      micStream.getTracks().forEach(t => t.stop());
+      micStream = null;
+    }
+  }
+}
+
+async function subscribeToProducer(producerSocketId) {
+  if (producerSocketId === myId) return;
+  if (msConsumers[producerSocketId]) return; // already subscribed
+  if (!msDevice || !msRecvTransport) return;
+  try {
+    if (voiceAudioCtx.state === 'suspended') await voiceAudioCtx.resume();
+    const params = await socketRequest('msConsume', {
+      producerSocketId,
+      transportId: msRecvTransportId,
+      rtpCapabilities: msDevice.rtpCapabilities,
+    });
+    const consumer = await msRecvTransport.consume({
+      id: params.id,
+      producerId: params.producerId,
+      kind: params.kind,
+      rtpParameters: params.rtpParameters,
+    });
+    // Chrome requires an <audio> element attached to a WebRTC MediaStream
+    // for audio to actually flow; Web Audio API alone won't play it.
+    const stream = new MediaStream([consumer.track]);
+    const audio = document.createElement('audio');
+    audio.srcObject = stream;
+    audio.muted = true; // muted; actual output goes through Web Audio gainNode
+    audio.autoplay = true;
+    document.body.appendChild(audio);
+    // Web Audio pipeline for distance-based gain and ducking analysis
+    const source = voiceAudioCtx.createMediaStreamSource(stream);
+    const gainNode = voiceAudioCtx.createGain();
+    gainNode.gain.value = 1.0;
+    const analyser = voiceAudioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(gainNode);
+    gainNode.connect(analyser);
+    analyser.connect(voiceAudioCtx.destination);
+
+    msConsumers[producerSocketId] = { consumer, gainNode, analyser, source, audio };
+  } catch (e) {
+    console.warn('subscribeToProducer failed:', e);
+  }
+}
+
+function unsubscribeFromProducer(producerSocketId) {
+  const entry = msConsumers[producerSocketId];
+  if (!entry) return;
+  entry.consumer.close();
+  entry.source.disconnect();
+  entry.gainNode.disconnect();
+  entry.analyser.disconnect();
+  if (entry.audio) {
+    entry.audio.srcObject = null;
+    entry.audio.remove();
+  }
+  delete msConsumers[producerSocketId];
+}
+
+socket.on('subscribeProducer', (data) => {
+  subscribeToProducer(data.producerSocketId);
+});
+
+socket.on('unsubscribeProducer', (data) => {
+  unsubscribeFromProducer(data.producerSocketId);
+});
+
+socket.on('micStatus', (data) => {
+  playerMicStatus[data.id] = data.micOn;
+  if (!data.micOn) {
+    unsubscribeFromProducer(data.id);
+  }
+});
+
+// Voice proximity management — adjusts gain based on distance
+function updateVoiceConnections() {
+  const me = players[myId];
+  if (!me) return;
+  if (speechMuted) return; // gains already set to 0 by toggleSpeechMute
+  for (const [id, entry] of Object.entries(msConsumers)) {
+    const p = players[id];
+    if (!p) continue;
+    const dist = Math.hypot(me.x - p.x, me.y - p.y);
+    // Smooth falloff: full volume within half range, linear fade to 0 at VOICE_PROXIMITY
+    let vol = 1.0;
+    const halfRange = VOICE_PROXIMITY / 2;
+    if (dist > halfRange) {
+      vol = Math.max(0, 1 - (dist - halfRange) / halfRange);
+    }
+    entry.gainNode.gain.value = vol;
+  }
+}
+
+// Music ducking — called from gameLoop
+function updateMusicDucking() {
+  let speaking = false;
+  for (const entry of Object.values(msConsumers)) {
+    const data = new Uint8Array(entry.analyser.frequencyBinCount);
+    entry.analyser.getByteFrequencyData(data);
+    const avg = data.reduce((a, b) => a + b, 0) / data.length;
+    if (avg > 15) { speaking = true; break; }
+  }
+  const partyAudio = document.getElementById('partyAudio');
+  if (speaking && !isDucked) {
+    isDucked = true;
+    bgMusic.volume = 0.03;
+    if (partyAudio) partyAudio.volume = 0.1;
+  } else if (!speaking && isDucked) {
+    isDucked = false;
+    bgMusic.volume = normalBgVolume;
+    if (partyAudio) partyAudio.volume = normalPartyVolume;
+  }
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('emojiPicker').style.display = 'none';
+    document.getElementById('chatInput').style.display = 'none';
+    closeModal();
+    // Close any gallery overlays
+    document.querySelectorAll('.gallery-overlay').forEach(el => el.remove());
+  }
+});
+</script>
+</body>
+</html>
