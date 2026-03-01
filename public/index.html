@@ -835,16 +835,6 @@ canvas.addEventListener('mousedown', (e) => {
     }
   }
 
-  // Check if clicking on a video enlarge button
-  for (const item of mediaItems) {
-    if (item.type === 'video' && item._enlargeX != null) {
-      if (Math.hypot(x - item._enlargeX, y - item._enlargeY) < 16) {
-        viewMediaLarge(item);
-        return;
-      }
-    }
-  }
-
   // Check if clicking on a media item — opens player's gallery
   for (const item of mediaItems) {
     if (Math.abs(x - item.x) < 70 && Math.abs(y - item.y) < 55) {
@@ -1927,24 +1917,6 @@ function drawMediaItems() {
         ctx.textAlign = 'center';
         ctx.fillText('🎬', item.x, item.y + 8);
       }
-      // Enlarge button (bottom-right corner of frame)
-      const ebx = x + W - 4, eby = y + H - 4;
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.beginPath();
-      ctx.arc(ebx, eby, 14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(ebx, eby, 14, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.font = '13px serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fff';
-      ctx.fillText('🔍', ebx, eby + 5);
-      // Store enlarge button position on item for hit detection
-      item._enlargeX = ebx;
-      item._enlargeY = eby;
     }
 
     // Mask emoji at top-left corner
