@@ -581,8 +581,10 @@ for (let i = 0; i < 60; i++) {
   });
 }
 
-const mySelfies = []; // URLs of selfies taken by this player
+const mySelfies = JSON.parse(localStorage.getItem('mySelfies') || '[]'); // URLs of selfies taken by this player
+function saveMySelfies() { localStorage.setItem('mySelfies', JSON.stringify(mySelfies)); }
 const faceImageCache = {}; // url → Image object
+mySelfies.forEach(url => { const img = new Image(); img.src = url; img.onload = () => { img._loaded = true; }; faceImageCache[url] = img; });
 
 function loadFaceImage(url) {
   if (faceImageCache[url]) return faceImageCache[url];
@@ -636,7 +638,8 @@ function joinParty() {
   if (!name) return alert('אנא הכנס את שמך!');
   myName = name;
   localStorage.setItem('purimPartyName', name);
-  const costume = document.getElementById('costumeSelect').value;
+  const savedCostume = localStorage.getItem('purimPartyCostume');
+  const costume = savedCostume || document.getElementById('costumeSelect').value;
   socket.emit('join', { name, costume });
   document.getElementById('joinScreen').style.display = 'none';
   document.getElementById('partyRoom').style.display = 'block';
@@ -994,6 +997,7 @@ function showSelfGallery() {
   confirmBtn.onclick = () => {
     if (pendingCostume) {
       socket.emit('changeCostume', pendingCostume);
+      localStorage.setItem('purimPartyCostume', pendingCostume);
       pendingCostume = null;
       overlay.remove();
     }
@@ -1031,7 +1035,9 @@ function showSelfGallery() {
     avatarGrid.appendChild(btn);
   });
   // Add selfie face options
-  mySelfies.forEach(url => {
+  mySelfies.forEach((url, idx) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:relative;display:inline-block;';
     const btn = document.createElement('button');
     btn.style.cssText = 'padding:0;overflow:hidden;';
     const img = document.createElement('img');
@@ -1043,7 +1049,23 @@ function showSelfGallery() {
     btn.dataset.costumeVal = val;
     if (me.costume === val) btn.className = 'selected';
     btn.onclick = () => selectCostume(val, btn);
-    avatarGrid.appendChild(btn);
+    wrapper.appendChild(btn);
+    const delBtn = document.createElement('span');
+    delBtn.textContent = '✕';
+    delBtn.style.cssText = 'position:absolute;top:-4px;right:-4px;background:#f44336;color:#fff;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:18px;text-align:center;cursor:pointer;z-index:1;';
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      mySelfies.splice(mySelfies.indexOf(url), 1);
+      saveMySelfies();
+      if (me.costume === val) {
+        socket.emit('changeCostume', 'queen_esther');
+        localStorage.setItem('purimPartyCostume', 'queen_esther');
+        me.costume = 'queen_esther';
+      }
+      wrapper.remove();
+    };
+    wrapper.appendChild(delBtn);
+    avatarGrid.appendChild(wrapper);
   });
   avatarSection.appendChild(avatarGrid);
   avatarSection.appendChild(confirmRow);
@@ -1362,11 +1384,13 @@ async function confirmSelfie() {
         const cropData = await cropRes.json();
         if (cropData.url) {
           mySelfies.push(cropData.url);
+          saveMySelfies();
           loadFaceImage(cropData.url);
         }
       } catch(e) {
         // Fallback to original image
         mySelfies.push(data.url);
+        saveMySelfies();
         loadFaceImage(data.url);
       }
     }
