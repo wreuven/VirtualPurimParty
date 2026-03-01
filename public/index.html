@@ -1831,8 +1831,7 @@ function drawMediaItems() {
   const W = 140, H = 105;
   mediaItems.forEach(item => {
     const age = (now - item.timestamp) / 1000;
-    if (age > 300) return;
-    let alpha = age > 260 ? (300 - age) / 40 : 1;
+    let alpha = 1;
     // Fast fade when replaced by a new selfie
     if (item._fadingAt) {
       const fadeAge = (now - item._fadingAt) / 1000;
