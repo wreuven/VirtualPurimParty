@@ -572,8 +572,7 @@ let isDragging = false;
 const imageCache = {};
 const videoCache = {};
 const allMyMedia = []; // persistent list of own uploads, never fades
-let myLastSelfieImage = null; // media id of my last image selfie
-let myLastSelfieVideo = null; // media id of my last video selfie
+let myLastSharedItem = null; // media id of my last shared item
 
 // Confetti particles
 const confetti = [];
@@ -702,9 +701,7 @@ socket.on('mediaShared', (item) => {
   if (mediaItems.length > 30) mediaItems.shift();
   if (item.uploadedById === myId) {
     allMyMedia.push(item);
-    // Track latest selfie by type
-    if (item.type === 'image') myLastSelfieImage = item.id;
-    else if (item.type === 'video') myLastSelfieVideo = item.id;
+    myLastSharedItem = item.id;
   }
 });
 
@@ -1267,6 +1264,11 @@ async function uploadSelfieFile() {
     document.getElementById('uploadStatus').textContent = '...מעלה';
     const res = await fetch('/upload', { method: 'POST', body: formData });
     const data = await res.json();
+    // Fade out previous shared item
+    if (myLastSharedItem) {
+      const oldItem = mediaItems.find(m => m.id === myLastSharedItem);
+      if (oldItem) { oldItem._fadingAt = Date.now(); setTimeout(() => { socket.emit('deleteMedia', myLastSharedItem); }, 5000); }
+    }
     socket.emit('shareMedia', { url: data.url, type: isVideo ? 'video' : 'image' });
     showNotification('הסלפי שותף!');
     closeModal();
@@ -1371,8 +1373,8 @@ async function confirmSelfie() {
     document.getElementById('uploadStatus').textContent = '...מעלה';
     const res = await fetch('/upload', { method: 'POST', body: formData });
     const data = await res.json();
-    // Fade out old selfie of same type
-    const oldId = pendingSelfieType === 'image' ? myLastSelfieImage : myLastSelfieVideo;
+    // Fade out previous shared item
+    const oldId = myLastSharedItem;
     if (oldId) {
       const oldItem = mediaItems.find(m => m.id === oldId);
       if (oldItem) {
@@ -1437,6 +1439,11 @@ async function doUpload() {
     if (currentUploadType === 'music') {
       socket.emit('setPartyMusic', { url: data.url, name: file.name });
     } else {
+      // Fade out previous shared item
+      if (myLastSharedItem) {
+        const oldItem = mediaItems.find(m => m.id === myLastSharedItem);
+        if (oldItem) { oldItem._fadingAt = Date.now(); setTimeout(() => { socket.emit('deleteMedia', myLastSharedItem); }, 5000); }
+      }
       socket.emit('shareMedia', { url: data.url, type: currentUploadType === 'video' ? 'video' : 'image' });
     }
     showNotification('שותף בהצלחה!');
