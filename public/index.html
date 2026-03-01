@@ -171,12 +171,12 @@ body {
   z-index: 500;
 }
 .modal {
-  background: #2d1b69; border-radius: 20px; padding: 30px;
-  max-width: 500px; width: 90%; color: #fff; position: relative;
-  border: 2px solid rgba(255,215,0,0.3);
+  background: #2d1b69; border-radius: 16px; padding: 20px;
+  max-width: 420px; width: 85%; color: #fff; position: relative;
+  border: 2px solid rgba(255,215,0,0.3); overflow: visible;
 }
-.modal h2 { font-family: 'Fredoka One', cursive; color: #ffd700; margin-bottom: 16px; }
-.modal-close { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); border: 2px solid #ffd700; color: #ffd700; font-size: 1.5em; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; z-index: 10; }
+.modal h2 { font-family: 'Fredoka One', cursive; color: #ffd700; margin-bottom: 12px; font-size: 1.2em; }
+.modal-close { position: absolute; top: -18px; right: -18px; background: rgba(0,0,0,0.85); border: 2px solid #ffd700; color: #ffd700; font-size: 1.5em; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; z-index: 10; }
 .modal input[type="file"] { width: 100%; margin: 12px 0; color: #c4a0ff; }
 .modal button:not(.modal-close) {
   padding: 10px 24px; border-radius: 10px; border: none;
@@ -192,7 +192,7 @@ body {
   padding: 16px; border-radius: 16px;
   border: 1px solid rgba(255,215,0,0.3);
   display: none; z-index: 200;
-  max-width: 320px;
+  max-width: 320px; overflow: visible;
 }
 #emojiPicker .emoji-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
 #emojiPicker .emoji-btn {
@@ -269,12 +269,16 @@ body {
   z-index: 600;
 }
 .gallery-modal {
-  background: #2d1b69; border-radius: 20px; padding: 30px;
-  max-width: 600px; width: 90%; color: #fff;
+  background: #2d1b69; border-radius: 16px;
+  max-width: 480px; width: 85%; color: #fff; position: relative;
   border: 2px solid rgba(255,215,0,0.3);
-  max-height: 80vh; overflow-y: auto;
+  max-height: 80vh; overflow: visible;
 }
-.gallery-modal h2 { font-family: 'Fredoka One', cursive; color: #ffd700; margin-bottom: 16px; text-align: center; }
+.gallery-modal-inner {
+  padding: 20px; max-height: calc(80vh - 4px); overflow-y: auto;
+  border-radius: 16px;
+}
+.gallery-modal h2 { font-family: 'Fredoka One', cursive; color: #ffd700; margin-bottom: 12px; text-align: center; font-size: 1.2em; }
 .gallery-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
 }
@@ -298,11 +302,11 @@ body {
 .gallery-delete-btn:hover { transform: scale(1.2); }
 .gallery-empty { text-align: center; color: #c4a0ff; padding: 20px; }
 .gallery-close {
-  position: absolute; top: 10px; right: 10px;
-  background: rgba(0,0,0,0.7); border: 2px solid #ffd700; color: #ffd700;
+  position: absolute; top: -18px; right: -18px;
+  background: rgba(0,0,0,0.85); border: 2px solid #ffd700; color: #ffd700;
   font-size: 1.5em; cursor: pointer; width: 40px; height: 40px;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  line-height: 1; z-index: 1;
+  line-height: 1; z-index: 10;
 }
 
 /* AVATAR PICKER */
@@ -465,7 +469,7 @@ body {
 
   <!-- Emoji picker -->
   <div id="emojiPicker">
-    <button onclick="document.getElementById('emojiPicker').style.display='none'" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.7);border:2px solid #ffd700;color:#ffd700;font-size:1.2em;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;z-index:1;">&times;</button>
+    <button onclick="document.getElementById('emojiPicker').style.display='none'" style="position:absolute;top:-14px;right:-14px;background:rgba(0,0,0,0.85);border:2px solid #ffd700;color:#ffd700;font-size:1.2em;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;z-index:1;">&times;</button>
     <p>:שלח אימוג'י חיובי למישהו בקרבת מקום</p>
     <div class="emoji-grid" id="emojiGrid"></div>
   </div>
@@ -874,7 +878,6 @@ function showPlayerGallery(playerId) {
 
   const modal = document.createElement('div');
   modal.className = 'gallery-modal';
-  modal.style.position = 'relative';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'gallery-close';
@@ -882,9 +885,12 @@ function showPlayerGallery(playerId) {
   closeBtn.onclick = () => overlay.remove();
   modal.appendChild(closeBtn);
 
+  const inner = document.createElement('div');
+  inner.className = 'gallery-modal-inner';
+
   const title = document.createElement('h2');
   title.textContent = `הגלריה של ${player.name}`;
-  modal.appendChild(title);
+  inner.appendChild(title);
 
   // Send emoji button
   const emojiRow = document.createElement('div');
@@ -894,13 +900,13 @@ function showPlayerGallery(playerId) {
   sendEmojiBtn.style.cssText = 'padding:8px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#ffd700,#ff6b35);color:#1a0533;font-weight:700;cursor:pointer;font-family:inherit;';
   sendEmojiBtn.onclick = () => { overlay.remove(); toggleEmojiPicker(); };
   emojiRow.appendChild(sendEmojiBtn);
-  modal.appendChild(emojiRow);
+  inner.appendChild(emojiRow);
 
   if (playerMedia.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'gallery-empty';
     empty.textContent = 'אין תמונות או סרטונים עדיין';
-    modal.appendChild(empty);
+    inner.appendChild(empty);
   } else {
     const grid = document.createElement('div');
     grid.className = 'gallery-grid';
@@ -923,8 +929,9 @@ function showPlayerGallery(playerId) {
       cell.onclick = () => { overlay.remove(); viewMedia(item); };
       grid.appendChild(cell);
     });
-    modal.appendChild(grid);
+    inner.appendChild(grid);
   }
+  modal.appendChild(inner);
 
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
@@ -941,7 +948,6 @@ function showSelfGallery() {
 
   const modal = document.createElement('div');
   modal.className = 'gallery-modal';
-  modal.style.position = 'relative';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'gallery-close';
@@ -949,9 +955,12 @@ function showSelfGallery() {
   closeBtn.onclick = () => overlay.remove();
   modal.appendChild(closeBtn);
 
+  const inner = document.createElement('div');
+  inner.className = 'gallery-modal-inner';
+
   const title = document.createElement('h2');
   title.textContent = 'הגלריה שלי';
-  modal.appendChild(title);
+  inner.appendChild(title);
 
   // Avatar change section
   const avatarSection = document.createElement('div');
@@ -1063,13 +1072,13 @@ function showSelfGallery() {
   });
   avatarSection.appendChild(avatarGrid);
   avatarSection.appendChild(confirmRow);
-  modal.appendChild(avatarSection);
+  inner.appendChild(avatarSection);
 
   if (allMyMedia.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'gallery-empty';
     empty.textContent = 'אין תמונות או סרטונים עדיין';
-    modal.appendChild(empty);
+    inner.appendChild(empty);
   } else {
     const grid = document.createElement('div');
     grid.className = 'gallery-grid';
@@ -1132,8 +1141,9 @@ function showSelfGallery() {
       };
       grid.appendChild(cell);
     });
-    modal.appendChild(grid);
+    inner.appendChild(grid);
   }
+  modal.appendChild(inner);
 
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
@@ -1977,7 +1987,7 @@ function viewMediaLarge(item) {
   overlay.className = 'modal-overlay';
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
   const container = document.createElement('div');
-  container.style.cssText = 'position:relative;width:66vw;height:66vh;display:flex;align-items:center;justify-content:center;background:#000;border-radius:16px;overflow:hidden;border:3px solid rgba(255,215,0,0.5);';
+  container.style.cssText = 'position:relative;width:66vw;height:66vh;display:flex;align-items:center;justify-content:center;background:#000;border-radius:16px;overflow:visible;border:3px solid rgba(255,215,0,0.5);';
   const v = document.createElement('video');
   v.src = item.url;
   v.controls = true;
@@ -1988,7 +1998,7 @@ function viewMediaLarge(item) {
   // Close button
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times;';
-  closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);border:2px solid #ffd700;color:#ffd700;font-size:2em;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;z-index:1;';
+  closeBtn.style.cssText = 'position:absolute;top:-18px;right:-18px;background:rgba(0,0,0,0.85);border:2px solid #ffd700;color:#ffd700;font-size:1.5em;cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;z-index:10;';
   closeBtn.onclick = () => overlay.remove();
   container.appendChild(closeBtn);
   overlay.appendChild(container);
@@ -2065,7 +2075,7 @@ function viewMedia(item) {
   // Close button
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times;';
-  closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);border:2px solid #ffd700;color:#ffd700;font-size:2em;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;z-index:1;';
+  closeBtn.style.cssText = 'position:absolute;top:-18px;right:-18px;background:rgba(0,0,0,0.85);border:2px solid #ffd700;color:#ffd700;font-size:1.5em;cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;z-index:10;';
   closeBtn.onclick = (e) => { e.stopPropagation(); overlay.remove(); };
   container.appendChild(closeBtn);
 
