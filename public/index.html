@@ -813,25 +813,7 @@ canvas.addEventListener('mousedown', (e) => {
   const x = (e.clientX - rect.left) * scaleX;
   const y = (e.clientY - rect.top) * scaleY;
 
-  // Check if clicking on a video enlarge button
-  for (const item of mediaItems) {
-    if (item.type === 'video' && item._enlargeX != null) {
-      if (Math.hypot(x - item._enlargeX, y - item._enlargeY) < 16) {
-        viewMediaLarge(item);
-        return;
-      }
-    }
-  }
-
-  // Check if clicking on a media item — opens player's gallery
-  for (const item of mediaItems) {
-    if (Math.abs(x - item.x) < 70 && Math.abs(y - item.y) < 55) {
-      viewMedia(item);
-      return;
-    }
-  }
-
-  // Check if clicking on my avatar — start dragging (or click if no movement)
+  // Check if clicking on my avatar first — takes priority over media
   const me = players[myId];
   if (me && Math.hypot(x - me.x, y - me.y) < 37) {
     dragging = true;
@@ -849,6 +831,24 @@ canvas.addEventListener('mousedown', (e) => {
     if (id === myId) continue;
     if (Math.hypot(x - p.x, y - p.y) < 35) {
       showPlayerGallery(id);
+      return;
+    }
+  }
+
+  // Check if clicking on a video enlarge button
+  for (const item of mediaItems) {
+    if (item.type === 'video' && item._enlargeX != null) {
+      if (Math.hypot(x - item._enlargeX, y - item._enlargeY) < 16) {
+        viewMediaLarge(item);
+        return;
+      }
+    }
+  }
+
+  // Check if clicking on a media item — opens player's gallery
+  for (const item of mediaItems) {
+    if (Math.abs(x - item.x) < 70 && Math.abs(y - item.y) < 55) {
+      viewMedia(item);
       return;
     }
   }
