@@ -1779,9 +1779,10 @@ function drawPlayers() {
 
 function drawChatBubbles() {
   const now = Date.now();
-  chatBubbles = chatBubbles.filter(b => now - b.time < 15000);
+  chatBubbles = chatBubbles.filter(b => now - b.time < 11000);
   chatBubbles.forEach(b => {
-    const alpha = Math.max(0, 1 - (now - b.time) / 15000);
+    const age = now - b.time;
+    const alpha = age < 8000 ? 1 : Math.max(0, 1 - (age - 8000) / 3000);
     ctx.globalAlpha = alpha;
     ctx.fillStyle = 'rgba(255,255,255,0.95)';
     const metrics = ctx.measureText(b.text);
