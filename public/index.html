@@ -93,41 +93,40 @@ body {
 }
 .tool-btn:hover { background: rgba(255,215,0,0.2); transform: translateY(-2px); }
 
-/* MIC BUTTON */
-#micButton {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  width: 60px; height: 60px; border-radius: 50%; border: 3px solid #ffd700;
-  background: rgba(26,5,51,0.9); color: #fff; font-size: 28px;
-  cursor: pointer; z-index: 101; display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; backdrop-filter: blur(12px);
+/* AUDIO CONTROL BUTTONS — lower left column */
+#audioControls {
+  position: fixed; bottom: 80px; left: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  z-index: 101;
 }
-#micButton:hover { transform: translateX(-50%) scale(1.1); }
-#micButton.mic-active {
-  background: rgba(220,38,38,0.9); border-color: #ff4444;
-  animation: pulse-mic 1.5s ease-in-out infinite;
-}
-#musicToggle {
-  position: fixed; bottom: 90px; left: 20px;
-  width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700;
+.audio-btn {
+  position: relative;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 2px solid #ffd700;
   background: rgba(26,5,51,0.9); color: #fff; font-size: 22px;
-  cursor: pointer; z-index: 101; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: all 0.2s; backdrop-filter: blur(12px);
 }
-#musicToggle:hover { transform: scale(1.1); }
-#musicToggle.music-off { opacity: 0.5; border-color: rgba(255,215,0,0.4); }
-#speechMuteBtn {
-  position: fixed; bottom: 90px; right: 20px;
-  width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ffd700;
-  background: rgba(26,5,51,0.9); color: #fff; font-size: 22px;
-  cursor: pointer; z-index: 101; display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; backdrop-filter: blur(12px);
+.audio-btn:hover { transform: scale(1.1); }
+.audio-btn.active {
+  border-color: #4ade80; background: rgba(22,101,52,0.85);
 }
-#speechMuteBtn:hover { transform: scale(1.1); }
-#speechMuteBtn.speech-muted { opacity: 0.5; border-color: rgba(255,215,0,0.4); }
+.audio-btn.muted {
+  border-color: rgba(255,215,0,0.3);
+}
+.audio-btn.muted .btn-icon { opacity: 0.35; filter: grayscale(1); }
+.audio-btn .btn-x {
+  display: none; position: absolute;
+  font-size: 28px; font-weight: bold; color: #ef4444;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+.audio-btn.muted .btn-x { display: block; }
 @keyframes pulse-mic {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.6); }
-  50% { box-shadow: 0 0 20px 10px rgba(220,38,38,0.3); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.5); }
+  50% { box-shadow: 0 0 14px 6px rgba(74,222,128,0.25); }
 }
+.audio-btn.active.mic-active { animation: pulse-mic 1.5s ease-in-out infinite; }
 
 /* CHAT BUBBLES */
 .chat-bubble {
@@ -464,10 +463,19 @@ body {
     <div class="emoji-grid" id="emojiGrid"></div>
   </div>
 
+  <!-- Audio controls — lower left -->
+  <div id="audioControls">
+    <button class="audio-btn muted" id="musicToggle" onclick="toggleBgMusic()" title="מוזיקת רקע">
+      <span class="btn-icon">🎵</span><span class="btn-x">✕</span>
+    </button>
+    <button class="audio-btn" id="micButton" onclick="toggleMic()" title="מיקרופון">
+      <span class="btn-icon">🎤</span><span class="btn-x">✕</span>
+    </button>
+    <button class="audio-btn" id="speechMuteBtn" onclick="toggleSpeechMute()" title="השתק/בטל השתקה דיבור">
+      <span class="btn-icon">🔊</span><span class="btn-x">✕</span>
+    </button>
+  </div>
   <!-- Toolbar -->
-  <button id="musicToggle" onclick="toggleBgMusic()">🎶</button>
-  <button id="micButton" onclick="toggleMic()">🎙️</button>
-  <button id="speechMuteBtn" onclick="toggleSpeechMute()" title="השתק/בטל השתקה דיבור">🔊</button>
   <div id="toolbar">
     <button class="tool-btn" onclick="toggleChat()">💬 צ'אט</button>
     <button class="tool-btn" onclick="toggleEmojiPicker()">😊 אימוג'י</button>
@@ -717,22 +725,21 @@ bgMusic.loop = true;
 bgMusic.volume = 0.15;
 
 function startBackgroundMusic() {
-  // Music starts muted by default — user can toggle with 🎶 button
+  // Music starts muted by default
   bgMusic.pause();
-  document.getElementById('musicToggle').classList.add('music-off');
-  document.getElementById('musicToggle').textContent = '🎵';
+  // musicToggle already has class="muted" in HTML
 }
 
 function toggleBgMusic() {
   const btn = document.getElementById('musicToggle');
   if (bgMusic.paused) {
     bgMusic.play().catch(() => {});
-    btn.classList.remove('music-off');
-    btn.textContent = '🎶';
+    btn.classList.add('active');
+    btn.classList.remove('muted');
   } else {
     bgMusic.pause();
-    btn.classList.add('music-off');
-    btn.textContent = '🎵';
+    btn.classList.remove('active');
+    btn.classList.add('muted');
   }
 }
 
@@ -2047,14 +2054,13 @@ function toggleSpeechMute() {
   speechMuted = !speechMuted;
   const btn = document.getElementById('speechMuteBtn');
   if (speechMuted) {
-    btn.textContent = '🔇';
-    btn.classList.add('speech-muted');
+    btn.classList.add('muted');
+    btn.classList.remove('active');
     for (const entry of Object.values(msConsumers)) {
       entry.gainNode.gain.value = 0;
     }
   } else {
-    btn.textContent = '🔊';
-    btn.classList.remove('speech-muted');
+    btn.classList.remove('muted');
     // gains will be restored by updateVoiceConnections on next frame
   }
 }
@@ -2120,8 +2126,8 @@ async function toggleMic() {
       micOn = true;
       playerMicStatus[myId] = true;
       const btn = document.getElementById('micButton');
-      btn.classList.add('mic-active');
-      btn.textContent = '🎤';
+      btn.classList.add('active', 'mic-active');
+      btn.classList.remove('muted');
       socket.emit('micStatus', { micOn: true });
       // Produce audio track via SFU
       const track = micStream.getAudioTracks()[0];
@@ -2133,8 +2139,8 @@ async function toggleMic() {
     micOn = false;
     playerMicStatus[myId] = false;
     const btn = document.getElementById('micButton');
-    btn.classList.remove('mic-active');
-    btn.textContent = '🎙️';
+    btn.classList.remove('active', 'mic-active');
+    btn.classList.add('muted');
     socket.emit('micStatus', { micOn: false });
     if (msProducer) {
       msProducer.close();
