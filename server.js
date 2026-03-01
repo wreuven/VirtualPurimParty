@@ -208,9 +208,17 @@ io.on('connection', (socket) => {
     if (!players[socket.id]) return;
     const positiveEmojis = ['😊','🎉','❤️','⭐','👏','🥳','💃','🕺','✨','🌟','💖','😄','🤗','👍','🎊','🎭','👑','🍷','📜','🔔','🎶','🌈'];
     if (positiveEmojis.includes(data.emoji)) {
-      io.to(data.to).emit('receiveEmoji', { from: players[socket.id].name, emoji: data.emoji });
-      // Also show floating emoji on sender
-      io.emit('floatingEmoji', { emoji: data.emoji, x: players[socket.id].x, y: players[socket.id].y - 40 });
+      const sender = players[socket.id];
+      const receiver = players[data.to];
+      io.to(data.to).emit('receiveEmoji', { from: sender.name, emoji: data.emoji });
+      // Animate emoji flying from sender to receiver for everyone
+      if (receiver) {
+        io.emit('flyingEmoji', {
+          emoji: data.emoji,
+          fromX: sender.x, fromY: sender.y - 40,
+          toX: receiver.x, toY: receiver.y - 40
+        });
+      }
     }
   });
 

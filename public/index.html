@@ -682,7 +682,7 @@ socket.on('receiveEmoji', (data) => {
   showNotification(`${data.from} שלח לך ${data.emoji}`);
 });
 
-socket.on('floatingEmoji', (data) => {
+socket.on('flyingEmoji', (data) => {
   floatingEmojis.push({ ...data, time: Date.now() });
 });
 
@@ -753,6 +753,7 @@ function toggleBgMusic() {
 let hoveredVideoUrl = null;
 let dragging = false;
 let dragOffsetX = 0, dragOffsetY = 0;
+let dragStartX = 0, dragStartY = 0, dragMoved = false;
 canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
   const scaleX = 1200 / rect.width;
@@ -762,6 +763,7 @@ canvas.addEventListener('mousemove', (e) => {
 
   // Drag avatar
   if (dragging) {
+    if (Math.hypot(x - dragStartX, y - dragStartY) > 5) dragMoved = true;
     socket.emit('move', { x: x + dragOffsetX, y: y + dragOffsetY });
     return;
   }
@@ -826,12 +828,15 @@ canvas.addEventListener('mousedown', (e) => {
     }
   }
 
-  // Check if clicking on my avatar — start dragging
+  // Check if clicking on my avatar — start dragging (or click if no movement)
   const me = players[myId];
   if (me && Math.hypot(x - me.x, y - me.y) < 37) {
     dragging = true;
     dragOffsetX = me.x - x;
     dragOffsetY = me.y - y;
+    dragStartX = x;
+    dragStartY = y;
+    dragMoved = false;
     canvas.style.cursor = 'grabbing';
     return;
   }
@@ -848,8 +853,12 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mouseup', () => {
   if (dragging) {
+    const wasDrag = dragMoved;
     dragging = false;
     canvas.style.cursor = '';
+    if (!wasDrag) {
+      showSelfGallery();
+    }
   }
 });
 
@@ -1763,15 +1772,26 @@ function drawChatBubbles() {
 
 function drawFloatingEmojis() {
   const now = Date.now();
-  floatingEmojis = floatingEmojis.filter(e => now - e.time < 2000);
+  const duration = 1200;
+  floatingEmojis = floatingEmojis.filter(e => now - e.time < duration);
   floatingEmojis.forEach(e => {
-    const progress = (now - e.time) / 2000;
-    const y = e.y - progress * 80;
-    const alpha = 1 - progress;
+    const t = (now - e.time) / duration;
+    // Ease out cubic
+    const ease = 1 - Math.pow(1 - t, 3);
+    // Arc from sender to receiver
+    const x = e.fromX + (e.toX - e.fromX) * ease;
+    const baseY = e.fromY + (e.toY - e.fromY) * ease;
+    // Add an arc (parabola upward)
+    const arcHeight = -60 * Math.sin(t * Math.PI);
+    const y = baseY + arcHeight;
+    // Fade out in last 20%
+    const alpha = t > 0.8 ? (1 - t) / 0.2 : 1;
+    // Scale: start small, grow, shrink at end
+    const size = 28 + 12 * Math.sin(t * Math.PI);
     ctx.globalAlpha = alpha;
-    ctx.font = `${24 + progress * 12}px serif`;
+    ctx.font = `${Math.round(size)}px serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(e.emoji, e.x, y);
+    ctx.fillText(e.emoji, x, y);
     ctx.textAlign = 'left';
     ctx.globalAlpha = 1;
   });
